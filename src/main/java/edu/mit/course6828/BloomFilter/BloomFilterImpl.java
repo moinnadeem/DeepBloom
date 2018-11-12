@@ -1,5 +1,8 @@
 package edu.mit.course6828.BloomFilter;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.BitSet;
 
 public class BloomFilterImpl implements BloomFilter {
@@ -54,6 +57,21 @@ public class BloomFilterImpl implements BloomFilter {
 			}
 		}
 		return true;
+	}
+	
+	public void writeTo(OutputStream out) {
+		DataOutputStream dout = new DataOutputStream(out);
+		try {
+			dout.writeByte(m);
+			dout.writeByte(k);
+			dout.writeByte(hashMask);
+			dout.writeInt(this.filterArray.length());
+			for (int i = 0; i < this.filterArray.size(); i++) {
+				dout.writeBoolean(this.filterArray.get(i));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

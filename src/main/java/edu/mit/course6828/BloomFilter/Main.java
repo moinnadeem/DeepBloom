@@ -2,6 +2,7 @@ package edu.mit.course6828.BloomFilter;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.SecureRandom;
@@ -39,7 +40,7 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws IOException {
-		int m = 18000;
+		int m = 180000;
 		int k = 30;
 		int bitsMin = 5; // 40 for data, 14 example
 		int bitsMax = 15; // 18488 for data, 23 example
@@ -53,7 +54,8 @@ public class Main {
 
 		for (int log2bits = bitsMin; log2bits <= bitsMax; log2bits++) {
 		  System.out.println("log2bits: " + log2bits);
-		  for (int noHashes = 1; noHashes <= k; noHashes++) {
+		  for (int noHashes = 29; noHashes <= k; noHashes++) {
+			  System.out.println("log2bits: " + log2bits + ", noHashes: " + noHashes);
 		    double noFalsePositives = 0;
 		    int noNotIn = 0;
 
@@ -83,6 +85,9 @@ public class Main {
 		      noFalsePositives / noNotIn;
 //		    System.out.println(noNotIn + ", " + noFalsePositives);
 		    System.out.println(falsePositiveRate);
+		    
+		    FileOutputStream outputStream = new FileOutputStream("bfWrite.txt");
+		    bf.writeTo(outputStream);
 		  }
 		}
 	}
