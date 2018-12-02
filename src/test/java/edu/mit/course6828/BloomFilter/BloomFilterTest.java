@@ -6,8 +6,6 @@ import org.junit.Test;
 import edu.mit.course6828.BloomFilter.BloomFilter;
 import edu.mit.course6828.BloomFilter.BloomFilterImpl;
 import edu.mit.course6828.BloomFilter.BloomFilterUtils;
-import edu.mit.course6828.BloomFilter.HashFunctionFamily;
-import edu.mit.course6828.BloomFilter.HashFunctionFamilyImpl1;
 
 public class BloomFilterTest {
 	
@@ -18,10 +16,8 @@ public class BloomFilterTest {
 		int m = 150000000;
 		int k = BloomFilterUtils.calculateOptimalK(m, n);
 		System.out.println("Value of optimal k is: "+ k);
-		HashFunctionFamily hashFunctionFamily = new HashFunctionFamilyImpl1(k);
-//		HashFunctionFamily hashFunctionFamily = new HashFunctionFamilyImpl2();
 
-		BloomFilter bloomFilter = new BloomFilterImpl(m, k, hashFunctionFamily);
+		BloomFilter bloomFilter = new BloomFilterImpl(m, k);
 		bloomFilter.add("Hello World");		
 		boolean isContain = bloomFilter.contains("Hello World");
 		Assert.assertTrue("BloomFilter cannot have False Negatives", (isContain == true));

@@ -85,7 +85,7 @@ public class BloomFilterUtils {
 		    int noFalsePositives = 0;
 		    int noNotIn = 0;
 
-		    BloomFilter bf = new BloomFilterImpl(m, k, new HashFunctionFamilyImpl1(k));
+		    BloomFilter bf = new BloomFilterImpl(m, k);
 		    Set<String> already = new HashSet<>();
 		    // Add items to Bloom filter
 		    for (String s : badUrls) {
@@ -114,7 +114,7 @@ public class BloomFilterUtils {
 		    System.out.println("numNotIn: " + noNotIn + ", numFalsePos: " + noFalsePositives + ", fpr: " + falsePositiveRate);
 		    
 		    FileOutputStream outputStream = new FileOutputStream("outputs/bfWrite.txt");
-		    bf.writeTo(outputStream);
+		    bf.save(outputStream);
 		  }
 		}
 		System.out.println("done");
