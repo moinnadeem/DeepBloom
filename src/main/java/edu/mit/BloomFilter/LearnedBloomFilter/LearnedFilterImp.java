@@ -31,6 +31,7 @@ public class LearnedFilterImp implements LearnedFilter{
 		CSVLoader loader = new CSVLoader();
 		loader.setSource(inputFile);
 		Instances dataSet = loader.getDataSet();
+		dataSet.setClassIndex(dataSet.numAttributes() - 1);
 
 		clf = new weka.classifiers.functions.Logistic();
 		clf.buildClassifier(dataSet);

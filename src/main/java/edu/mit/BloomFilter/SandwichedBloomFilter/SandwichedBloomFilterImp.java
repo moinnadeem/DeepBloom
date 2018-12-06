@@ -32,8 +32,8 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 		double fpr1 = fpr; // Need to change
 		initialFilter = new BloomFilterImpl(n1, fpr1);
 		
-		String labelNegative = "bad";
-		String labelPositive = "good";
+		String labelPositive = "bad";
+		String labelNegative = "good";
 		
 		// Go through the input file to add items to the initial filter
 		int numberOfItemsInInitialFilter = 0;
@@ -43,7 +43,7 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 			while((line = reader.readLine())!= null) {
 				lineNo ++;
 				// each line has a format: "url,bad/good"
-				line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+				// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
 				int index = line.lastIndexOf(',');
 				String url = line.substring(0, index);
 				String label = line.substring(index+1, line.length());
@@ -68,13 +68,14 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 			String line;
 			while((line = reader.readLine())!= null) {
 				// each line has a format: "url,good"
-				line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+				// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
 				int index = line.lastIndexOf(',');
 				String url = line.substring(0, index);
 				String label = line.substring(index+1, line.length());
 				
 				if (label.equals(labelNegative)) {
 					if (initialFilter.contains(url)) {
+						url = url.replace("%","");
 						writer.write(url+"," + label + "\n");
 						numberOfFalsePositiveItemsFromTheInitialFilter++;
 					}
@@ -87,7 +88,7 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 		learnedOracle = new LearnedFilterImp();
 		double fpr2 = fpr; // Need to change
 		try {
-			learnedOracle.learn(falsePositiveItemsFromInitialFilterFile, fpr2, negativeResultFromLearnedOracleFile);
+			learnedOracle.learn(inputDataFile, fpr2, negativeResultFromLearnedOracleFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
