@@ -1,11 +1,7 @@
-package edu.mit.course6828.BloomFilter;
+package edu.mit.BloomFilter.BloomFilter;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import edu.mit.course6828.BloomFilter.BloomFilter;
-import edu.mit.course6828.BloomFilter.BloomFilterImpl;
-import edu.mit.course6828.BloomFilter.BloomFilterUtils;
 
 public class BloomFilterTest {
 	

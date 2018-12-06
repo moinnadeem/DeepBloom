@@ -1,4 +1,4 @@
-package edu.mit.course6828.SandwichedBloomFilter;
+package edu.mit.BloomFilter.SandwichedBloomFilter;
 
 import java.io.IOException;
 

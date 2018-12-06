@@ -1,4 +1,4 @@
-package edu.mit.course6828.BloomFilter;
+package edu.mit.BloomFilter.BloomFilter;
 
 public class HashFunctionFamilyImpl1 implements HashFunctionFamily {
 

@@ -1,4 +1,4 @@
-package edu.mit.course6828.BloomFilter;
+package edu.mit.BloomFilter.BloomFilter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

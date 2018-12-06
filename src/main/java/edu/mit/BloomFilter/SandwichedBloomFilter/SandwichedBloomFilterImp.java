@@ -1,4 +1,4 @@
-package edu.mit.course6828.SandwichedBloomFilter;
+package edu.mit.BloomFilter.SandwichedBloomFilter;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -12,17 +12,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import edu.mit.course6828.BloomFilter.BloomFilter;
-import edu.mit.course6828.BloomFilter.BloomFilterImpl;
-import edu.mit.course6828.LearnedBloomFilter.LearnedFilter;
-import edu.mit.course6828.LearnedBloomFilter.LearnedFilterImp;
+import edu.mit.BloomFilter.BloomFilter.BloomFilter;
+import edu.mit.BloomFilter.BloomFilter.BloomFilterImpl;
+import edu.mit.BloomFilter.LearnedBloomFilter.LearnedFilter;
+import edu.mit.BloomFilter.LearnedBloomFilter.LearnedFilterImp;
 
 public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 	
 	private BloomFilter initialFilter;
 	private LearnedFilter learnedOracle;
 	private BloomFilter backupFilter;
-	
+
 	public SandwichedBloomFilterImp() {
 		// will need to either call initAndLearn or load
 	}
@@ -75,7 +75,7 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 				
 				if (label.equals(labelNegative)) {
 					if (initialFilter.contains(url)) {
-						writer.write(url+"\n");
+						writer.write(url+"," + label + "\n");
 						numberOfFalsePositiveItemsFromTheInitialFilter++;
 					}
 				}
@@ -86,8 +86,12 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 		// initialize learnedOracle
 		learnedOracle = new LearnedFilterImp();
 		double fpr2 = fpr; // Need to change
-		learnedOracle.learn(falsePositiveItemsFromInitialFilterFile, fpr2, negativeResultFromLearnedOracleFile);
-		
+		try {
+			learnedOracle.learn(falsePositiveItemsFromInitialFilterFile, fpr2, negativeResultFromLearnedOracleFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		// count the number of lines in the negativeResultFromLearnedOracleFile
 		int numberOfItemsInBackupFilter = 0;
 		try(BufferedReader reader = new BufferedReader(new FileReader(negativeResultFromLearnedOracleFile))){
@@ -118,7 +122,11 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 		if (!isContain) {
 			return false;
 		}
-		isContain = learnedOracle.classify(s);
+		try {
+			isContain = learnedOracle.classify(s);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if (isContain) {
 			return true;
 		}
@@ -133,7 +141,11 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 		outputStream1.close();
 		
 		OutputStream outputStream2 = new FileOutputStream(learnedOracleFile);
-		learnedOracle.save(outputStream2);
+		try {
+			learnedOracle.save(outputStream2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		outputStream2.close();
 		
 		OutputStream outputStream3 = new FileOutputStream(backupFilterFile);
@@ -151,7 +163,11 @@ public class SandwichedBloomFilterImp implements SandwichedBloomFilter{
 		
 		learnedOracle = new LearnedFilterImp();
 		InputStream inputStream2 = new FileInputStream(learnedOracleFile);
-		learnedOracle.load(inputStream2);
+		try {
+			learnedOracle.load(inputStream2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		inputStream2.close();
 		
 		backupFilter = new BloomFilterImpl();

@@ -1,4 +1,4 @@
-package edu.mit.course6828.SandwichedBloomFilter;
+package edu.mit.BloomFilter.SandwichedBloomFilter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,12 +23,11 @@ public class SandwichedBloomFilterUtils {
 			while((line = reader.readLine())!= null) {
 				lineNo ++;
 				// each line has a format: "url,bad/good"
-				line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+				// line = line.substring(1, line.length()); // remove the double quotes at both ends
 				int index = line.lastIndexOf(',');
 //				String url = line.substring(0, index);
 				String label = line.substring(index+1, line.length());
-
-				if (!label.equals(labelPositive) && !label.equals(labelNegative)) {
+				if (!(label.equals(labelPositive) || label.equals(labelNegative))) {
 					System.out.println("Wrong format for line #"+ lineNo + ". Line = " + line);
 					numberOfLinesWithWrongFormat++;
 					continue;
