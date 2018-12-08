@@ -1,7 +1,6 @@
-package edu.mit.BloomFilter.LearnedBloomFilter;
+package edu.mit.BloomFilter.OracleModel;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -19,17 +18,16 @@ import org.apache.spark.sql.types.StructType;
 import org.apache.zookeeper.KeeperException;
 import scala.Tuple2;
 
-
-public class LearnedFilterImp implements LearnedFilter{
+public class OracleModelImp implements OracleModel{
 
 	/**
 	 * Constructor.
 	 */
-	public LearnedFilterImp() {
-
+	public OracleModelImp() {
+		this.clf = null;
 	}
 	
-	public void learn(File inputFile, double fpr, File negativeResultOutputFile) throws Exception {
+	public void learn(File inputFile, double fpr) throws Exception {
 		// Assuming the input file is a CSV
 		StructType schema = new StructType()
 				.add("url", "string")
@@ -108,5 +106,10 @@ public class LearnedFilterImp implements LearnedFilter{
 
 	public void load(InputStream inputStream) throws Exception {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int getSize() {
+		throw new java.lang.UnsupportedOperationException("Not supported yet.");
 	}
 }

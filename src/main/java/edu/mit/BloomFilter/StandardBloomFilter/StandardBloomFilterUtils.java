@@ -1,4 +1,4 @@
-package edu.mit.BloomFilter.BloomFilter;
+package edu.mit.BloomFilter.StandardBloomFilter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-public class BloomFilterUtils {
+public class StandardBloomFilterUtils {
 	
 	public static int calculateOptimalK(int m, int n) {
 		
@@ -85,7 +85,7 @@ public class BloomFilterUtils {
 		    int noFalsePositives = 0;
 		    int noNotIn = 0;
 
-		    BloomFilter bf = new BloomFilterImpl(m, k);
+		    StandardBloomFilter bf = new StandardBloomFilterImpl(m, k);
 		    Set<String> already = new HashSet<>();
 		    // Add items to Bloom filter
 		    for (String s : badUrls) {
@@ -121,6 +121,6 @@ public class BloomFilterUtils {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		BloomFilterUtils.getFpr();
+		StandardBloomFilterUtils.getFpr();
 	}
 }

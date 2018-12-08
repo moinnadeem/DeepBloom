@@ -1,4 +1,4 @@
-package edu.mit.BloomFilter.SandwichedBloomFilter;
+package edu.mit.BloomFilter.LearnedBloomFilter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,47 +9,66 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import edu.mit.BloomFilter.BloomLearnedFilter.LearnedBloomFilterImp;
 import edu.mit.BloomFilter.Utils.InputFileInfo;
 
-public class SandwichedBloomFilterTest {
+public class LearnedBloomFilterTest {
 	
 	@Test
-	public void testBasicSandwichedBloomFilter() {
+	public void testBasicLearnedBloomFilter() {
 		
+		// print information for input file
+		File inputDataFile = new File("model_training/data.csv");
 		try {
-			InputFileInfo.printStatisticForInputFile(new File("model_training/data.csv"));
+			InputFileInfo.printStatisticForInputFile(inputDataFile);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
-		File inputDataFile = new File("model_training/data.csv");
-		int approximateN = 350000;
-		double fprForTheInitialFilter = 0.10;
-		double fprForTheBackupFilter = 0.01;
+		// Learn and setup learned filter
+		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
+		double fprForOracleModel = 0.05;
+		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter, fprForTheBackupFilter);
-			
+			filter.initAndLearn(inputDataFile, fprForOracleModel, fprForBackupFilter);
+		} catch (IOException e) {
+			e.printStackTrace();
+			Assert.fail("Exception: "+ e.getMessage());
+		}
+		
+		// save the learned filter
+		String learnedOracleFile = "learnedOracleFile2";
+		String backupFilterFile = "backupFilterFile2";
+		try {
+			filter.save(learnedOracleFile, backupFilterFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+			Assert.fail("Exception: "+ e.getMessage());
+		}
+		
+		// load the learned filter
+		LearnedBloomFilterImp filter2 = new LearnedBloomFilterImp();
+		try {
+			filter2.load(learnedOracleFile, backupFilterFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail("Exception: "+ e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void checkFilterHasZeroFalseNegative() {
 		
 		File inputDataFile = new File("model_training/data.csv");
 
 		// Learn and setup learned filter
-		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
-		int approximateN = 350000;
-		double fprForTheInitialFilter = 0.10;
-		double fprForTheBackupFilter = 0.01;
+		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
+		double fprForOracleModel = 0.05;
+		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter, fprForTheBackupFilter);
+			filter.initAndLearn(inputDataFile, fprForOracleModel, fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail("Exception: "+ e.getMessage());
