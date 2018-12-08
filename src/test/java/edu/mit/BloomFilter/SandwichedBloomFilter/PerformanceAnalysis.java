@@ -27,11 +27,9 @@ public class PerformanceAnalysis {
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
 		int approximateN = 344821;
 		double fprForOracleModel = 0.05;
-		File falsePositiveItemsFromInitialFilterFile = new File("./falsePositiveItemsFromInitialFilterFile_sandwichedFilter");
-		File falseNegativeItemsFromLearnedOracleFile = new File("./falseNegativeItemsFromLearnedOracle_sandwichedFilter");
 		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, approximateN, fprForOracleModel, falsePositiveItemsFromInitialFilterFile, falseNegativeItemsFromLearnedOracleFile,
+			filter.initAndLearn(inputDataFile, approximateN, fprForOracleModel,
 					fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();

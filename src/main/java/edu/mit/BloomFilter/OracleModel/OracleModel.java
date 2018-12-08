@@ -7,7 +7,7 @@ import java.io.OutputStream;
 public interface OracleModel {
 	
 	
-	public void learn(File inputFile, double fpr, File falseNegativeItemsOutputFile) throws Exception;
+	public void learn(File inputFile, double fpr) throws Exception;
 	
 	public boolean classify(String s) throws Exception;
 	

@@ -1,29 +1,23 @@
 package edu.mit.BloomFilter.OracleModel;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class OracleModelImpMock implements OracleModel{
 
-	/** 
-	 * Constructor.
-	 */
 	public OracleModelImpMock() {
 	}
 	
-	public void learn(File inputDataFile, double fpr, File falseNegativeItemsOutputFile) throws Exception {
+	public void learn(File inputDataFile, double fpr) throws Exception {
 		String labelPositive = "good";
 		String labelNegative = "bad";
 		
 		int numberOfFalseNegativeItems = 0;
 		int lineNo = 0;
-		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile));
-			BufferedWriter writer = new BufferedWriter(new FileWriter(falseNegativeItemsOutputFile))){
+		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile));){
 			String line;
 			while((line = reader.readLine())!= null) {
 				lineNo ++;
@@ -39,7 +33,6 @@ public class OracleModelImpMock implements OracleModel{
 				}
 				if (label.equals(labelPositive)) {
 					if (url.hashCode() %2 !=0) { // false Negative item
-						writer.write(url+"\n");
 						numberOfFalseNegativeItems++;
 					}
 				}	

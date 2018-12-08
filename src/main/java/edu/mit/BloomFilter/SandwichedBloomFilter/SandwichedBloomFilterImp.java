@@ -1,13 +1,11 @@
 package edu.mit.BloomFilter.SandwichedBloomFilter;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,7 +26,7 @@ public class SandwichedBloomFilterImp{
 		// will need to either call initAndLearn or load
 	}
 	
-	public void initAndLearn(File inputDataFile, int approximateN, double fprForTheInitialFilter, File falsePositiveItemsFromInitialFilterFile, File falseNegativeItemsFromLearnedOracleFile, double fprForTheBackupFilter) throws FileNotFoundException, IOException {
+	public void initAndLearn(File inputDataFile, int approximateN, double fprForTheInitialFilter, double fprForTheBackupFilter) throws FileNotFoundException, IOException {
 		int n1 = approximateN;
 		double fpr1 = fprForTheInitialFilter; 
 		initialFilter = new StandardBloomFilterImpl(n1, fpr1);
@@ -64,8 +62,7 @@ public class SandwichedBloomFilterImp{
 		
 		// Go through the input file again to find false positive items from the initial filter
 		int numberOfFalsePositiveItemsFromTheInitialFilter = 0;
-		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile));
-			BufferedWriter writer = new BufferedWriter(new FileWriter(falsePositiveItemsFromInitialFilterFile))){
+		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile));){
 			String line;
 			while((line = reader.readLine())!= null) {
 				// each line has a format: "url,good"
@@ -78,7 +75,7 @@ public class SandwichedBloomFilterImp{
 					if (initialFilter.contains(url)) {
 //						url = url.replace("%","");
 //						writer.write(url+"," + label + "\n");
-						writer.write(url+"\n");
+//						writer.write(url+"\n");
 						numberOfFalsePositiveItemsFromTheInitialFilter++;
 					}
 				}
@@ -87,10 +84,10 @@ public class SandwichedBloomFilterImp{
 		System.out.println("numberOfFalsePositiveItemsFromTheInitialFilter:" + numberOfFalsePositiveItemsFromTheInitialFilter);
 		
 		// learn the oracle function
-		learnedOracle = new OracleModelImpMock();
+		learnedOracle = new OracleModelImp();
 		double fpr2 = fprForTheInitialFilter; // Need to change
 		try {
-			learnedOracle.learn(inputDataFile, fpr2, falseNegativeItemsFromLearnedOracleFile);
+			learnedOracle.learn(inputDataFile, fpr2);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -27,10 +27,9 @@ public class PerformanceAnalysis {
 		// Learn and setup learned filter
 		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
 		double fprForOracleModel = 0.05;
-		File falseNegativeItemsFromLearnedOracleFile = new File("./falseNegativeItemsFromLearnedOracle");
 		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, fprForOracleModel, falseNegativeItemsFromLearnedOracleFile,
+			filter.initAndLearn(inputDataFile, fprForOracleModel,
 					fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();

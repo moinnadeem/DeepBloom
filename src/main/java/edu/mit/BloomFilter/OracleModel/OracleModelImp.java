@@ -1,7 +1,6 @@
 package edu.mit.BloomFilter.OracleModel;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -12,7 +11,6 @@ import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
-import weka.core.converters.ArffLoader;
 
 public class OracleModelImp implements OracleModel{
 
@@ -26,7 +24,7 @@ public class OracleModelImp implements OracleModel{
 		this.clf = null;
 	}
 	
-	public void learn(File inputFile, double fpr, File falseNegativeItemsOutputFile) throws Exception {
+	public void learn(File inputFile, double fpr) throws Exception {
 		// Assuming the input file is a CSV
 		CSVLoader loader = new CSVLoader();
 		loader.setSource(inputFile);
