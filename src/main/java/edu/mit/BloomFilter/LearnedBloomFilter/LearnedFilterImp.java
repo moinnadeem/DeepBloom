@@ -5,80 +5,108 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import weka.classifiers.Classifier;
-import weka.core.converters.CSVLoader;
-import weka.classifiers.Evaluation;
-import weka.core.Attribute;
-import weka.core.Instance;
-import weka.core.Instances;
-import weka.core.SerializationHelper;
-import weka.core.converters.ArffLoader;
+import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.feature.*;
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics;
+import org.apache.spark.sql.*;
+import org.apache.spark.ml.classification.LogisticRegressionModel;
+import org.apache.spark.sql.types.StructType;
+import org.apache.zookeeper.KeeperException;
+import scala.Tuple2;
+
 
 public class LearnedFilterImp implements LearnedFilter{
 
-	private Classifier clf;
-	private Instances dataSet;
-
-	/** 
+	/**
 	 * Constructor.
 	 */
 	public LearnedFilterImp() {
-		this.clf = null;
+
 	}
 	
 	public void learn(File inputFile, double fpr, File negativeResultOutputFile) throws Exception {
 		// Assuming the input file is a CSV
-		CSVLoader loader = new CSVLoader();
-		loader.setSource(inputFile);
-		Instances dataSet = loader.getDataSet();
-		dataSet.setClassIndex(dataSet.numAttributes() - 1);
+		StructType schema = new StructType()
+				.add("url", "string")
+				.add("labelString", "string");
 
-		clf = new weka.classifiers.functions.Logistic();
-		clf.buildClassifier(dataSet);
-		Evaluation eval = new Evaluation(dataSet);
-		eval.evaluateModel(clf, dataSet);
-		System.out.println("** Linear Regression Evaluation with Datasets **");
-		System.out.println(eval.toSummaryString());
-		System.out.print(" the expression for the input data as per alogorithm is ");
-		System.out.println(clf);
+		SparkConf configuration = new SparkConf()
+				.setAppName("Your Application Name")
+				.setMaster("local");
+		SparkContext sc = new SparkContext(configuration);
+
+		SparkSession spark = new SparkSession(sc);
+
+		Dataset<Row> df = spark.read()
+				.option("mode", "DROPMALFORMED")
+                .option("header", "true")
+				.schema(schema)
+				.csv(inputFile.getPath());
+
+		RegexTokenizer regexTokenizer = new RegexTokenizer()
+				.setInputCol("url")
+				.setOutputCol("tokenized_url")
+				.setPattern("");
+
+		Dataset<Row> tokenized = regexTokenizer.transform(df);
+
+		NGram ngramTransformer = new NGram().setN(2).setInputCol("tokenized_url").setOutputCol("ngrams");
+		tokenized = ngramTransformer.transform(tokenized);
+		tokenized.show();
+
+		CountVectorizerModel cvModel = new CountVectorizer()
+				.setInputCol("ngrams")
+				.setOutputCol("features")
+				.setVocabSize(3)
+				.setMinDF(2)
+				.fit(tokenized);
+
+		tokenized = cvModel.transform(tokenized);
+
+		System.out.println("Newly vectorized model...");
+		tokenized.show();
+
+		StringIndexerModel indexer = new StringIndexer()
+				.setInputCol("labelString")
+				.setOutputCol("label")
+				.fit(tokenized);
+
+
+		Dataset<Row> final_df = indexer.transform(tokenized);
+
+		LogisticRegression lr = new LogisticRegression()
+				.setMaxIter(10)
+				.setRegParam(0.3)
+				.setElasticNetParam(0.8);
+
+		LogisticRegressionModel model = lr.fit(final_df);
+		double[] history = model.summary().objectiveHistory();
+		for(double i: history) {
+			System.out.println(i);
+		}
+		model.predict()
 	}
 	
 	public boolean classify(String url) throws Exception {
-		Instances testset = dataSet.stringFreeStructure();
-
+		throw new UnsupportedOperationException();
 		// Make message into test instance.
-		Instance instance = makeInstance(url, testset);
-		double output = clf.classifyInstance(instance);
-		System.out.println("Class: " + String.valueOf(output));
-		return output==1.0;
 	}
 
-	/**
-	 * Method that converts a text message into an instance.
-	 */
-	private Instance makeInstance(String text, Instances data) {
-
-		// Create instance of length two.
-		Instance instance = new Instance(2);
-
-		// Set value for message attribute
-		Attribute messageAtt = data.attribute("Message");
-		instance.setValue(messageAtt, messageAtt.addStringValue(text));
-
-		// Give instance access to attribute information from the dataset.
-		instance.setDataset(data);
-		return instance;
-	}
 	
 	public String printSize() {
 		throw new java.lang.UnsupportedOperationException("Not supported yet.");
 	}
 	
 	public void save(OutputStream outputStream) throws Exception {
-	    SerializationHelper.write(outputStream, clf);
+		throw new UnsupportedOperationException();
 	}
 
 	public void load(InputStream inputStream) throws Exception {
-	    clf = (Classifier) SerializationHelper.read(inputStream);
+		throw new UnsupportedOperationException();
 	}
 }

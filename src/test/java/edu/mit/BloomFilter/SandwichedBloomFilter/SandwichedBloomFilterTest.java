@@ -13,7 +13,7 @@ public class SandwichedBloomFilterTest {
 	public void testBasicSandwichedBloomFilter() {
 		
 		try {
-			SandwichedBloomFilterUtils.printStatisticForInputFile(new File("/home/moinnadeem/Documents/MIT/6.830/DeepBloom/DeepBloom/model_training/data.csv"));
+			SandwichedBloomFilterUtils.printStatisticForInputFile(new File("/Users/moinnadeem/Documents/MIT/Junior/6.830/DeepBloom/model_training/data.csv"));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -21,7 +21,7 @@ public class SandwichedBloomFilterTest {
 		}
 		
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
-		File inputDataFile = new File("/home/moinnadeem/Documents/MIT/6.830/DeepBloom/DeepBloom/model_training/data.csv");
+		File inputDataFile = new File("/Users/moinnadeem/Documents/MIT/Junior/6.830/DeepBloom/model_training/data.csv");
 		int approximateN = 350000;
 		double fpr = 0.05;
 		File falsePositiveItemsFromInitialFilterFile = new File("./falsePositiveItemsFromInitialFilterFile");
