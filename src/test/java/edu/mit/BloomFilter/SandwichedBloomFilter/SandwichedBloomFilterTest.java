@@ -7,13 +7,15 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import edu.mit.BloomFilter.Utils.InputFileInfo;
+
 public class SandwichedBloomFilterTest {
 	
 	@Test
 	public void testBasicSandwichedBloomFilter() {
 		
 		try {
-			SandwichedBloomFilterUtils.printStatisticForInputFile(new File("model_training/data.csv"));
+			InputFileInfo.printStatisticForInputFile(new File("model_training/data.csv"));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -23,11 +25,12 @@ public class SandwichedBloomFilterTest {
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
 		File inputDataFile = new File("model_training/data.csv");
 		int approximateN = 350000;
-		double fpr = 0.05;
-		File falsePositiveItemsFromInitialFilterFile = new File("./falsePositiveItemsFromInitialFilterFile");
-		File negativeResultFromLearnedOracleFile = new File("./negativeResultFromLearnedOracleFile");
+		double fprForTheInitialFilter = 0.10;
+		File falsePositiveItemsFromInitialFilterFile = new File("./falsePositiveItemsFromInitialFilterFile_sandwichedFilter");
+		File falseNegativeItemsFromLearnedOracleFile = new File("./falseNegativeItemsFromLearnedOracleFile_sandwichedFilter");
+		double fprForTheBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, approximateN, fpr, falsePositiveItemsFromInitialFilterFile, negativeResultFromLearnedOracleFile);
+			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter, falsePositiveItemsFromInitialFilterFile, falseNegativeItemsFromLearnedOracleFile, fprForTheBackupFilter);
 			
 		} catch (IOException e) {
 			e.printStackTrace();

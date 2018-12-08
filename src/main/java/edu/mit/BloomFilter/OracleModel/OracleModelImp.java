@@ -1,4 +1,4 @@
-package edu.mit.BloomFilter.LearnedBloomFilter;
+package edu.mit.BloomFilter.OracleModel;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import weka.core.Instances;
 import weka.core.SerializationHelper;
 import weka.core.converters.ArffLoader;
 
-public class LearnedFilterImp implements LearnedFilter{
+public class OracleModelImp implements OracleModel{
 
 	private Classifier clf;
 	private Instances dataSet;
@@ -22,11 +22,11 @@ public class LearnedFilterImp implements LearnedFilter{
 	/** 
 	 * Constructor.
 	 */
-	public LearnedFilterImp() {
+	public OracleModelImp() {
 		this.clf = null;
 	}
 	
-	public void learn(File inputFile, double fpr, File negativeResultOutputFile) throws Exception {
+	public void learn(File inputFile, double fpr, File falseNegativeItemsOutputFile) throws Exception {
 		// Assuming the input file is a CSV
 		CSVLoader loader = new CSVLoader();
 		loader.setSource(inputFile);
@@ -80,5 +80,10 @@ public class LearnedFilterImp implements LearnedFilter{
 
 	public void load(InputStream inputStream) throws Exception {
 	    clf = (Classifier) SerializationHelper.read(inputStream);
+	}
+
+	@Override
+	public int getSize() {
+		throw new java.lang.UnsupportedOperationException("Not supported yet.");
 	}
 }

@@ -1,4 +1,4 @@
-package edu.mit.BloomFilter.BloomFilter;
+package edu.mit.BloomFilter.StandardBloomFilter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.BitSet;
 
-public class BloomFilterImpl implements BloomFilter {
+public class StandardBloomFilterImpl implements StandardBloomFilter {
 
 	private int m; // number of bits in the filter array
 	private int k; // number of hash functions
@@ -15,11 +15,16 @@ public class BloomFilterImpl implements BloomFilter {
 	private int hashMask; // maximum index in the filter array, use to calculate the index into the filterArray
 	private HashFunctionFamily hashFunctionFamily;
 	
-	public BloomFilterImpl(int n, double fpr) {
+	/**
+	 * 
+	 * @param approximateN approximate number of items that will be added to the filter
+	 * @param fpr the expected false positive rate for the filter
+	 */
+	public StandardBloomFilterImpl(int approximateN, double fpr) {
 		// m = ceil((n * log(p)) / log(1 / pow(2, log(2))));
 		// k = round((m / n) * log(2));
-		this.m = (int)Math.ceil((n * Math.log(fpr)) / Math.log(1 / Math.pow(2, Math.log(2))));
-		this.k = (int)Math.round(((double)m /(double) n) * Math.log(2));
+		this.m = (int)Math.ceil((approximateN * Math.log(fpr)) / Math.log(1 / Math.pow(2, Math.log(2))));
+		this.k = (int)Math.round(((double)m /(double) approximateN) * Math.log(2));
 		this.hashFunctionFamily = new HashFunctionFamilyImpl1(k);
 		int log2ofM = (int)Math.ceil(Math.log(m)/Math.log(2));
 		if (log2ofM > 31) {
@@ -29,12 +34,11 @@ public class BloomFilterImpl implements BloomFilter {
 		
 		this.hashMask = (1 << log2ofM) - 1;
 		this.filterArray = new BitSet(1 << log2ofM);
-		System.out.println("m: "+ this.m);
-		System.out.println("k: "+ this.k);
+		System.out.println("StandardBloomFilterImp: m: "+ this.m + ", k: "+ this.k);
 //		System.out.println("hashMask: "+ String.format("0x%08X", this.hashMask));
 	}
 	
-	public BloomFilterImpl(int m, int k) {
+	public StandardBloomFilterImpl(int m, int k) {
 		this.m = m;
 		this.k = k;
 		this.hashFunctionFamily = new HashFunctionFamilyImpl1(k);
@@ -46,12 +50,11 @@ public class BloomFilterImpl implements BloomFilter {
 		
 		this.hashMask = (1 << log2ofM) - 1;
 		this.filterArray = new BitSet(1 << log2ofM);
-		System.out.println("m: "+ this.m);
-		System.out.println("k: "+ this.k);
+		System.out.println("StandardBloomFilterImp: m: "+ this.m + ", k: "+ this.k);
 //		System.out.println("hashMask: "+ String.format("0x%08X", this.hashMask));
 	}
 	
-	public BloomFilterImpl() {
+	public StandardBloomFilterImpl() {
 		// Will need to load the filter from persistent storage
 	}
 	
@@ -119,6 +122,11 @@ public class BloomFilterImpl implements BloomFilter {
 			e.printStackTrace();
 		}
 		
+	}
+
+	@Override
+	public int getM() {
+		return this.m;
 	}
 
 }
