@@ -17,12 +17,32 @@
 	</properties>
 
 	<dependencies>	
+		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core -->
+		<dependency>
+		    <groupId>org.apache.spark</groupId>
+		    <artifactId>spark-core_2.10</artifactId>
+		    <version>2.2.2</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-mllib -->
+		<dependency>
+		    <groupId>org.apache.spark</groupId>
+		    <artifactId>spark-mllib_2.10</artifactId>
+		    <version>2.2.2</version>
+		</dependency> 
+	
+		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql -->
+		<dependency>
+		    <groupId>org.apache.spark</groupId>
+		    <artifactId>spark-sql_2.10</artifactId>
+		    <version>2.2.1</version>
+		</dependency> 
 		
 		<!-- https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable -->
 		<dependency>
 		    <groupId>nz.ac.waikato.cms.weka</groupId>
 		    <artifactId>weka-stable</artifactId>
-		    <version>3.6.10</version>
+		    <version>3.8.3</version>
 		</dependency>
 		
 		

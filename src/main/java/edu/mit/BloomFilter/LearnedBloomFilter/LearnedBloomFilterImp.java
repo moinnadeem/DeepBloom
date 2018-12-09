@@ -1,4 +1,4 @@
-package edu.mit.BloomFilter.BloomLearnedFilter;
+package edu.mit.BloomFilter.LearnedBloomFilter;
 
 import java.io.BufferedReader;
 import java.io.File;

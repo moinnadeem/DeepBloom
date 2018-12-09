@@ -9,7 +9,6 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import edu.mit.BloomFilter.BloomLearnedFilter.LearnedBloomFilterImp;
 import edu.mit.BloomFilter.Utils.InputFileInfo;
 
 public class LearnedBloomFilterTest {
