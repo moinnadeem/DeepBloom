@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
 import edu.mit.BloomFilter.OracleModel.OracleModelImp;
@@ -33,7 +34,7 @@ public class SandwichedBloomFilterImp{
 		
 		String labelPositive = "good";
 		String labelNegative = "bad";
-		
+		int totalLines = 0;
 		// Go through the input file to add items to the initial filter
 		int numberOfItemsInInitialFilter = 0;
 		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
@@ -55,7 +56,8 @@ public class SandwichedBloomFilterImp{
 					initialFilter.add(url);
 					numberOfItemsInInitialFilter++;
 				}	
-			}		
+			}
+			totalLines =  lineNo;
 		}
 		System.out.println("numberOfItemsInInitialFilter:" + numberOfItemsInInitialFilter);
 		
@@ -92,61 +94,94 @@ public class SandwichedBloomFilterImp{
 			e.printStackTrace();
 		}
 
-		// count the number of items that would be in backupFilter 
-		int numberOfItemsInBackupFilter = 0;
-		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
-			String line;
-			while((line = reader.readLine())!= null) {
-				// each line has a format: "url,bad/good"
-				// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
-				int index = line.lastIndexOf(',');
-				String url = line.substring(0, index);
-				String label = line.substring(index+1, line.length());
+		// count the number of items that would be in backupFilter
+        int numberOfItemsInBackupFilter = 0;
+		try {
+			numberOfItemsInBackupFilter = learnedOracle.numFalsePositive(inputDataFile);
+			System.out.println("numberOfItemsInBackupFilter:" + numberOfItemsInBackupFilter);
+		} catch (Exception e) {
+			e.printStackTrace();
+        }
+		//try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+		//	String line;
+		//	int lineNo = 0;
+		//	while((line = reader.readLine())!= null) {
+		//		lineNo += 1;
+		//		// each line has a format: "url,bad/good"
+		//		// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+		//		int index = line.lastIndexOf(',');
+		//		String url = line.substring(0, index);
+		//		String label = line.substring(index+1, line.length());
 
-				if (label.equals(labelPositive)) {
-					try {
-						if (learnedOracle.classify(url) == false) {
-							numberOfItemsInBackupFilter++;
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}	
-			}	
-		}	
-		System.out.println("numberOfItemsInBackupFilter:" + numberOfItemsInBackupFilter);
+		//		if (label.equals(labelPositive)) {
+		//			try {
+		//				if (learnedOracle.classify(url) == false) {  // not in set, implies a label of 1
+		//					numberOfItemsInBackupFilter++;
+		//				}
+		//			} catch (Exception e) {
+		//				e.printStackTrace();
+		//			}
+		//		}
+		//		progressPercentage(lineNo, totalLines);
+		//	}
+		//}
 
 		// initialize backup Filter
 		int n3 = numberOfItemsInBackupFilter;
 		double fpr3 = fprForTheBackupFilter;
 		backupFilter = new StandardBloomFilterImpl(n3, fpr3);
 		// Go through the input file to add items to the backup filter
-		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
-			String line;
-			while((line = reader.readLine())!= null) {
-				// each line has a format: "url,bad/good"
-				// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
-				int index = line.lastIndexOf(',');
-				String url = line.substring(0, index);
-				String label = line.substring(index+1, line.length());
+		try {
+            try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+                String line;
+                HashSet<String> set = learnedOracle.getClassifications(true);
+                while((line = reader.readLine())!= null) {
+                    // each line has a format: "url,bad/good"
+                    // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+                    int index = line.lastIndexOf(',');
+                    String url = line.substring(0, index);
+                    String label = line.substring(index+1, line.length());
 
-				if (!label.equals(labelPositive) && !label.equals(labelNegative)) {
-//					System.out.println("Wrong format for line #"+ lineNo + ". Line = " + line);
-					continue;
-				}
-				if (label.equals(labelPositive)) {
-					try {
-						if (learnedOracle.classify(url) == false) {
-							backupFilter.add(url);
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}	
-			}	
-		}	
+                    if (!label.equals(labelPositive) && !label.equals(labelNegative)) {
+    //					System.out.println("Wrong format for line #"+ lineNo + ". Line = " + line);
+                        continue;
+                    }
+                    if (label.equals(labelPositive)) {
+                        try {
+							if (!set.contains(url)) {
+								backupFilter.add(url);
+							}
+						} catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
+	public static void progressPercentage(int remain, int total) {
+		if (remain > total) {
+			throw new IllegalArgumentException();
+		}
+		int maxBareSize = 10; // 10unit for 100%
+		int remainProcent = ((100 * remain) / total) / maxBareSize;
+		char defaultChar = '-';
+		String icon = "*";
+		String bare = new String(new char[maxBareSize]).replace('\0', defaultChar) + "]";
+		StringBuilder bareDone = new StringBuilder();
+		bareDone.append("[");
+		for (int i = 0; i < remainProcent; i++) {
+			bareDone.append(icon);
+		}
+		String bareRemain = bare.substring(remainProcent, bare.length());
+		System.out.print("\r" + bareDone + bareRemain + " " + remainProcent * 10 + "%");
+		if (remain == total) {
+			System.out.print("\n");
+		}
+	}
 	public boolean contains(String s) {
 		boolean isContain = initialFilter.contains(s);
 		if (!isContain) {
@@ -202,14 +237,12 @@ public class SandwichedBloomFilterImp{
 		initialFilter.save(outputStream1);
 		outputStream1.close();
 		
-		OutputStream outputStream2 = new FileOutputStream(learnedOracleFile);
 		try {
-			learnedOracle.save(outputStream2);
+			learnedOracle.save(learnedOracleFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		outputStream2.close();
-		
+
 		OutputStream outputStream3 = new FileOutputStream(backupFilterFile);
 		backupFilter.save(outputStream3);
 		outputStream3.close();
@@ -223,14 +256,12 @@ public class SandwichedBloomFilterImp{
 		inputStream1.close();
 		
 		learnedOracle = new OracleModelImp();
-		InputStream inputStream2 = new FileInputStream(learnedOracleFile);
 		try {
-			learnedOracle.load(inputStream2);
+			learnedOracle.load(learnedOracleFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		inputStream2.close();
-		
+
 		backupFilter = new StandardBloomFilterImpl();
 		InputStream inputStream3 = new FileInputStream(backupFilterFile);
 		backupFilter.load(inputStream3);

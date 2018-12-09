@@ -3,6 +3,7 @@ package edu.mit.BloomFilter.OracleModel;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 
 public interface OracleModel {
 	
@@ -15,7 +16,11 @@ public interface OracleModel {
 	
 	public String printSize();
 
-	public void save(OutputStream outputStream) throws Exception;
+	public void save(String s) throws Exception;
 	
-	public void load(InputStream inputStream) throws Exception;
+	public void load(String s) throws Exception;
+
+	public int numFalsePositive(File f) throws Exception;
+
+	public HashSet<String> getClassifications(boolean isTrue) throws Exception;
 }

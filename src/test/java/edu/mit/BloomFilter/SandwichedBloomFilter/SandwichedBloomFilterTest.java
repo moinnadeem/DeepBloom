@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import edu.mit.BloomFilter.OracleModel.OracleModel;
+import edu.mit.BloomFilter.OracleModel.OracleModelImp;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,6 +33,7 @@ public class SandwichedBloomFilterTest {
 		double fprForTheBackupFilter = 0.01;
 		try {
 			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter, fprForTheBackupFilter);
+			filter.save("./initial.pkl", "./learned", "./total");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -86,5 +89,19 @@ public class SandwichedBloomFilterTest {
 		}
 		
 		Assert.assertTrue("No item checked", numberOfItemsChecked > 0);
+	}
+
+	@Test
+	public void classificationTest() {
+		File inputDataFile = new File("model_training/data.csv");
+		OracleModel model = new OracleModelImp();
+		try {
+			model.learn(inputDataFile, 0.02);
+			model.save("full_model");
+			model.classify("https://moinnadeem.com");
+		} catch (Exception e) {
+			System.out.println("An exception as occurred");
+			e.printStackTrace();
+		}
 	}
 }

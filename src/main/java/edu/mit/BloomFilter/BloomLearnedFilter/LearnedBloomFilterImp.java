@@ -134,14 +134,12 @@ public class LearnedBloomFilterImp {
 	
 	public void save(String learnedOracleFile, String backupFilterFile) throws IOException {
 		
-		OutputStream outputStream2 = new FileOutputStream(learnedOracleFile);
 		try {
-			learnedOracle.save(outputStream2);
+			learnedOracle.save(learnedOracleFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		outputStream2.close();
-		
+
 		OutputStream outputStream3 = new FileOutputStream(backupFilterFile);
 		backupFilter.save(outputStream3);
 		outputStream3.close();
@@ -151,14 +149,12 @@ public class LearnedBloomFilterImp {
 	public void load(String learnedOracleFile, String backupFilterFile) throws IOException {
 		
 		learnedOracle = new OracleModelImp();
-		InputStream inputStream2 = new FileInputStream(learnedOracleFile);
 		try {
-			learnedOracle.load(inputStream2);
+			learnedOracle.load(learnedOracleFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		inputStream2.close();
-		
+
 		backupFilter = new StandardBloomFilterImpl();
 		InputStream inputStream3 = new FileInputStream(backupFilterFile);
 		backupFilter.load(inputStream3);
