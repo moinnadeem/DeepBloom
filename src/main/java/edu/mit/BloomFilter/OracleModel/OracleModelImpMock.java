@@ -73,4 +73,11 @@ public class OracleModelImpMock implements OracleModel{
 	public int getNumberOfFalsePos(File f) throws Exception {
 		throw new Exception("Not implemented");
 	}
+
+    public int getNumberOfFalseNegative(File f) throws Exception {
+		throw new Exception("Not implemented");
+	}
+	public HashSet<String> classifyFile(File f, boolean isTrue) throws Exception {
+		throw new Exception("Not implemented");
+	}
 }

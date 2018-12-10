@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
@@ -19,9 +20,9 @@ import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 
 public class SandwichedBloomFilterImp{
 	
-	private StandardBloomFilter initialFilter;
-	private OracleModel learnedOracle;
-	private StandardBloomFilter backupFilter;
+	public StandardBloomFilter initialFilter;
+	public OracleModel learnedOracle;
+	public StandardBloomFilter backupFilter;
 
 	public SandwichedBloomFilterImp() {
 		// will need to either call initAndLearn or load
@@ -78,7 +79,7 @@ public class SandwichedBloomFilterImp{
 //						url = url.replace("%","");
 //						writer.write(url+"," + label + "\n");
 //						writer.write(url+"\n");
-						numberOfFalsePositiveItemsFromTheInitialFilter++;
+                        numberOfFalsePositiveItemsFromTheInitialFilter++;
 					}
 				}
 			}		
@@ -97,11 +98,12 @@ public class SandwichedBloomFilterImp{
 		// count the number of items that would be in backupFilter
         int numberOfItemsInBackupFilter = 0;
 		try {
-			numberOfItemsInBackupFilter = learnedOracle.getNumberOfFalsePos(inputDataFile);
+			numberOfItemsInBackupFilter = learnedOracle.getNumberOfFalseNegative(inputDataFile);
 			System.out.println("numberOfItemsInBackupFilter:" + numberOfItemsInBackupFilter);
 		} catch (Exception e) {
 			e.printStackTrace();
         }
+
 		//try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
 		//	String line;
 		//	int lineNo = 0;
@@ -122,7 +124,6 @@ public class SandwichedBloomFilterImp{
 		//				e.printStackTrace();
 		//			}
 		//		}
-		//		progressPercentage(lineNo, totalLines);
 		//	}
 		//}
 
@@ -134,7 +135,7 @@ public class SandwichedBloomFilterImp{
 		try {
             try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
                 String line;
-                HashSet<String> set = learnedOracle.getClassifications(true);
+                HashSet<String> set = learnedOracle.classifyFile(inputDataFile, false);
                 while((line = reader.readLine())!= null) {
                     // each line has a format: "url,bad/good"
                     // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
@@ -177,6 +178,41 @@ public class SandwichedBloomFilterImp{
 		}
 		isContain = backupFilter.contains(s);
 		return isContain;	
+	}
+
+	public ArrayList<Boolean> contains(File inputDataFile) {
+        ArrayList<Boolean> classifications = new ArrayList<Boolean>();
+
+        try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+            HashSet<String> learnedURLs = learnedOracle.classifyFile(inputDataFile, false);
+
+            String line;
+            while((line = reader.readLine())!= null) {
+                // each line has a format: "url,bad/good"
+                // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+                int index = line.lastIndexOf(',');
+                String url = line.substring(0, index);
+                String label = line.substring(index+1, line.length());
+
+                if (!initialFilter.contains(url)) {
+                    classifications.add(false);
+                    continue;
+                }
+
+                if (learnedURLs.contains(url)) {
+                    classifications.add(true);
+                    continue;
+                }
+
+                classifications.add(backupFilter.contains(url));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return classifications;
 	}
 	
 	/**
