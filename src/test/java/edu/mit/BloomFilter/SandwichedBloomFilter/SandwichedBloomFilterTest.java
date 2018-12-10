@@ -48,9 +48,9 @@ public class SandwichedBloomFilterTest {
         boolean isContain;
         long startTime;
         long totalQueryTime = 0;
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         ArrayList<Boolean> classifications = filter.contains(inputDataFile);
-        totalQueryTime = System.currentTimeMillis() - startTime;
+        totalQueryTime = System.nanoTime() - startTime;
         try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
             String line;
             while((line = reader.readLine())!= null) {
