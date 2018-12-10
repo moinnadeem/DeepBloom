@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
-import edu.mit.BloomFilter.OracleModel.OracleModelImp;
 import edu.mit.BloomFilter.OracleModel.OracleModelImpMock;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
@@ -87,7 +86,7 @@ public class SandwichedBloomFilterImp{
 		System.out.println("numberOfFalsePositiveItemsFromTheInitialFilter:" + numberOfFalsePositiveItemsFromTheInitialFilter);
 		
 		// learn the oracle function
-		learnedOracle = new OracleModelImp();
+		learnedOracle = new OracleModelImpMock();
 		double fpr2 = fprForTheInitialFilter; // Need to change
 		try {
 			learnedOracle.learn(inputDataFile);
@@ -249,9 +248,7 @@ public class SandwichedBloomFilterImp{
 	
 
 	public void save(String initialFilterFile, String learnedOracleFile, String backupFilterFile) throws IOException {
-		OutputStream outputStream1 = new FileOutputStream(initialFilterFile);
-		initialFilter.save(outputStream1);
-		outputStream1.close();
+		initialFilter.save(new File(initialFilterFile));
 		
 		try {
 			learnedOracle.save(learnedOracleFile);
@@ -259,19 +256,15 @@ public class SandwichedBloomFilterImp{
 			e.printStackTrace();
 		}
 
-		OutputStream outputStream3 = new FileOutputStream(backupFilterFile);
-		backupFilter.save(outputStream3);
-		outputStream3.close();
+		backupFilter.save(new File(backupFilterFile));
 		
 	}
 
 	public void load(String initialFilterFile, String learnedOracleFile, String backupFilterFile) throws IOException {
 		initialFilter = new StandardBloomFilterImpl();
-		InputStream inputStream1 = new FileInputStream(initialFilterFile);
-		initialFilter.load(inputStream1);
-		inputStream1.close();
+		initialFilter.load(new File(initialFilterFile));
 		
-		learnedOracle = new OracleModelImp();
+		learnedOracle = new OracleModelImpMock();
 		try {
 			learnedOracle.load(learnedOracleFile);
 		} catch (Exception e) {
@@ -279,9 +272,7 @@ public class SandwichedBloomFilterImp{
 		}
 
 		backupFilter = new StandardBloomFilterImpl();
-		InputStream inputStream3 = new FileInputStream(backupFilterFile);
-		backupFilter.load(inputStream3);
-		inputStream3.close();
+		backupFilter.load(new File(backupFilterFile));
 	}
 	
 }

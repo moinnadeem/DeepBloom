@@ -58,11 +58,11 @@ public class OracleModelImpMock implements OracleModel{
 	}
 	
 	public void save(String s) throws Exception {
-		throw new Exception("Not implemented");
+		// NO OP
 	}
 
 	public void load(String s) throws Exception {
-		throw new Exception("Not implemented");
+		// NO OP
 	}
 
 	@Override
@@ -71,7 +71,35 @@ public class OracleModelImpMock implements OracleModel{
 	}
 
 	public int getNumberOfFalsePos(File f) throws Exception {
-		throw new Exception("Not implemented");
+		String labelPositive = "good";
+		String labelNegative = "bad";
+		
+		int numberOfFalseNegativeItems = 0;
+		int lineNo = 0;
+		try(BufferedReader reader = new BufferedReader(new FileReader(f));){
+			String line;
+			while((line = reader.readLine())!= null) {
+				lineNo ++;
+				// each line has a format: "url,bad/good"
+				// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+				int index = line.lastIndexOf(',');
+				String url = line.substring(0, index);
+				String label = line.substring(index+1, line.length());
+
+				if (!label.equals(labelPositive) && !label.equals(labelNegative)) {
+					System.out.println("Wrong format for line #"+ lineNo + ". Line = " + line);
+					continue;
+				}
+				if (label.equals(labelPositive)) {
+					if (url.hashCode() %2 !=0) { // false Negative item
+						numberOfFalseNegativeItems++;
+					}
+				}	
+			}		
+		}
+		System.out.println("numberOfLines: " + lineNo);
+		System.out.println("numberOfFalseNegativeItems: " + numberOfFalseNegativeItems);
+		return numberOfFalseNegativeItems;
 	}
 
     public int getNumberOfFalseNegative(File f) throws Exception {

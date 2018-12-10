@@ -30,7 +30,7 @@ public class PerformanceAnalysis {
 		double fprForOracleModel = 0.25;
 		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, approximateN, fprForOracleModel,
+			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter,
 					fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();
