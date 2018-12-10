@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
-import edu.mit.BloomFilter.OracleModel.OracleModelImp;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -91,17 +90,4 @@ public class SandwichedBloomFilterTest {
 		Assert.assertTrue("No item checked", numberOfItemsChecked > 0);
 	}
 
-	@Test
-	public void classificationTest() {
-		File inputDataFile = new File("model_training/data.csv");
-		OracleModel model = new OracleModelImp();
-		try {
-			model.learn(inputDataFile);
-			model.save("full_model");
-			model.classify("https://moinnadeem.com");
-		} catch (Exception e) {
-			System.out.println("An exception as occurred");
-			e.printStackTrace();
-		}
-	}
 }
