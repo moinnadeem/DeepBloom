@@ -181,8 +181,10 @@ public class OracleModelImp implements OracleModel {
         df = cvModel.transform(df);
         System.out.println("Total time taken to preprocess dataset: " + String.valueOf(System.nanoTime() - startTime));
 
+        
         startTime = System.nanoTime();
         df = model.transform(df);
+        
         Row results = df.select("prediction").first();
         System.out.println("Total time taken to run predictions: " + String.valueOf(System.nanoTime() - startTime));
 

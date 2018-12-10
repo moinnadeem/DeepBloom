@@ -1,7 +1,7 @@
 package edu.mit.BloomFilter.StandardBloomFilter;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.File;
+import java.io.IOException;
 
 public interface StandardBloomFilter {
 	
@@ -9,9 +9,9 @@ public interface StandardBloomFilter {
 
 	public boolean contains(String s);
 	
-	public void save(OutputStream outputStream);
+	public void save(File file) throws IOException;
 	
-	public void load(InputStream inputStream);
+	public void load(File file) throws IOException;
 	
 	public int getM(); // Get number of bits used in the filter array
 	

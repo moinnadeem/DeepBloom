@@ -11,7 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
-import edu.mit.BloomFilter.OracleModel.OracleModelImp;
+import edu.mit.BloomFilter.OracleModel.OracleModelImpMock;
+//import edu.mit.BloomFilter.OracleModel.OracleModelImp;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 
@@ -27,7 +28,7 @@ public class LearnedBloomFilterImp {
 	public void initAndLearn(File inputDataFile, double fprForBackupFilter) throws FileNotFoundException, IOException {
 		
 		// learn the oracle function
-		learnedOracle = new OracleModelImp();
+		learnedOracle = new OracleModelImpMock();
 		try {
 			learnedOracle.learn(inputDataFile);
 		} catch (Exception e) {
@@ -139,15 +140,12 @@ public class LearnedBloomFilterImp {
 			e.printStackTrace();
 		}
 
-		OutputStream outputStream3 = new FileOutputStream(backupFilterFile);
-		backupFilter.save(outputStream3);
-		outputStream3.close();
-		
+		backupFilter.save(new File(backupFilterFile));
 	}
 
 	public void load(String learnedOracleFile, String backupFilterFile) throws IOException {
 		
-		learnedOracle = new OracleModelImp();
+		learnedOracle = new OracleModelImpMock();
 		try {
 			learnedOracle.load(learnedOracleFile);
 		} catch (Exception e) {
@@ -155,8 +153,6 @@ public class LearnedBloomFilterImp {
 		}
 
 		backupFilter = new StandardBloomFilterImpl();
-		InputStream inputStream3 = new FileInputStream(backupFilterFile);
-		backupFilter.load(inputStream3);
-		inputStream3.close();
+		backupFilter.load(new File(backupFilterFile));
 	}
 }

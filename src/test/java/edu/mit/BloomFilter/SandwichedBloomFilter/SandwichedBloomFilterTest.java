@@ -3,7 +3,8 @@ package edu.mit.BloomFilter.SandwichedBloomFilter;
 import java.io.*;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
-import edu.mit.BloomFilter.OracleModel.OracleModelImp;
+//import edu.mit.BloomFilter.OracleModel.OracleModelImp;
+import edu.mit.BloomFilter.OracleModel.OracleModelImpMock;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 import org.junit.Assert;
@@ -92,7 +93,7 @@ public class SandwichedBloomFilterTest {
 	@Test
 	public void classificationTest() {
 		File inputDataFile = new File("model_training/data.csv");
-		OracleModel model = new OracleModelImp();
+		OracleModel model = new OracleModelImpMock();
 		try {
 			model.learn(inputDataFile);
 			model.save("full_model");
@@ -142,9 +143,7 @@ public class SandwichedBloomFilterTest {
             }
             System.out.println("numberOfItemsInInitialFilter:" + numberOfItemsInInitialFilter);
 
-            OutputStream outputStream1 = new FileOutputStream("standardFilter");
-            model.save(outputStream1);
-            outputStream1.close();
+            model.save(new File("standardFilter"));
 		} catch (Exception e) {
 			System.out.println("An exception as occurred");
 			e.printStackTrace();
