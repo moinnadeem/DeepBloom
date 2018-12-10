@@ -30,7 +30,7 @@ public class Swing extends JFrame {
 	private JTextField fileField = new JTextField(200);
 	private String filePath = "";
 	private File selectedFile;
-	private double fpr = 0.0;
+	private double fpr = INITIAL_FPR;
 	private JTextArea textArea = new JTextArea();
 	
 	public Swing() {
@@ -172,7 +172,8 @@ public class Swing extends JFrame {
         //Make the year be formatted without a thousands separator.
         spinner.setEditor(new JSpinner.NumberEditor(spinner, "#%"));
         spinner.addChangeListener((e) -> {
-        		this.fpr = ((SpinnerNumberModel) spinner.getModel()).getNumber().doubleValue();
+        		double val = ((SpinnerNumberModel) spinner.getModel()).getNumber().doubleValue(); 
+        		this.fpr = Math.round(val * 100) / 100.0;
         });
         
 		JLabel l = new JLabel("False Positive Rate - FPR (%)");
@@ -192,7 +193,7 @@ public class Swing extends JFrame {
 			this.textArea.setText("Bloom filter has been learned from file: " + this.filePath 
 					+ " with fpr of " + this.fpr);
 			try {
-				this.sandwichedBf.initAndLearn(DEFAULT_FILE, APPROX_N, this.fpr, BACKUP_FPR);
+				this.sandwichedBf.initAndLearn(DEFAULT_FILE, APPROX_N, INITIAL_FPR, BACKUP_FPR);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
