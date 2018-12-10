@@ -35,7 +35,10 @@ public class PerformanceAnalysis {
 			e.printStackTrace();
 			Assert.fail("Exception: " + e.getMessage());
 		}
-		
+
+		System.out.println("About to run contains...");
+		filter.contains("https://moinnadeem.com");
+
 		// Determining FPR and query time
 		String labelPositive = "good";
 		String labelNegative = "bad";
