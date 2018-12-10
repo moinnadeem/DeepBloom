@@ -236,9 +236,7 @@ public class SandwichedBloomFilterTest {
             }
             System.out.println("numberOfItemsInInitialFilter:" + numberOfItemsInInitialFilter);
 
-            OutputStream outputStream1 = new FileOutputStream("standardFilter");
-            model.save(outputStream1);
-            outputStream1.close();
+            model.save(new File("standardFilter"));
 
             long initialTime = System.currentTimeMillis();
             model.contains("https://moinnadeem.com");

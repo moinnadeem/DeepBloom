@@ -27,7 +27,7 @@ public class PerformanceAnalysis {
 		// Learn and setup learned filter
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
 		int approximateN = 350000;
-		double fprForOracleModel = 0.25;
+		double fprForTheInitialFilter = 0.25;
 		double fprForBackupFilter = 0.01;
 		try {
 			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter,
