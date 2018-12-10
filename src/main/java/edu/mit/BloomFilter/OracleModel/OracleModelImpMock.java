@@ -21,7 +21,7 @@ public class OracleModelImpMock implements OracleModel{
 		return new HashSet<String>();
     }
 
-	public void learn(File inputDataFile, double fpr) throws Exception {
+	public void learn(File inputDataFile) throws Exception {
 		String labelPositive = "good";
 		String labelNegative = "bad";
 		

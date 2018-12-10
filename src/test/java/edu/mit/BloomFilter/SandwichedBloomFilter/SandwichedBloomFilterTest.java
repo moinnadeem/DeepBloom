@@ -96,7 +96,7 @@ public class SandwichedBloomFilterTest {
 		File inputDataFile = new File("model_training/data.csv");
 		OracleModel model = new OracleModelImp();
 		try {
-			model.learn(inputDataFile, 0.02);
+			model.learn(inputDataFile);
 			model.save("full_model");
 			model.classify("https://moinnadeem.com");
 		} catch (Exception e) {

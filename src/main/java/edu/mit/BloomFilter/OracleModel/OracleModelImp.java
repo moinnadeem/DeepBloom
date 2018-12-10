@@ -1,34 +1,31 @@
 package edu.mit.BloomFilter.OracleModel;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.ml.classification.BinaryLogisticRegressionSummary;
 import org.apache.spark.ml.classification.LogisticRegression;
-import org.apache.spark.ml.classification.NaiveBayes;
-import org.apache.spark.ml.classification.LinearSVC;
-import org.apache.spark.ml.classification.LinearSVCModel;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
-import org.apache.spark.ml.classification.DecisionTreeClassifier;
-import org.apache.spark.ml.classification.DecisionTreeClassificationModel;
-import org.apache.spark.ml.classification.NaiveBayesModel;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
-import org.apache.spark.ml.feature.*;
-import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics;
-import org.apache.spark.sql.*;
 import org.apache.spark.ml.classification.LogisticRegressionModel;
+import org.apache.spark.ml.feature.CountVectorizer;
+import org.apache.spark.ml.feature.CountVectorizerModel;
+import org.apache.spark.ml.feature.NGram;
+import org.apache.spark.ml.feature.RegexTokenizer;
+import org.apache.spark.ml.feature.StringIndexer;
+import org.apache.spark.ml.feature.StringIndexerModel;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.apache.zookeeper.KeeperException;
 
 public class OracleModelImp implements OracleModel{
 
@@ -47,7 +44,7 @@ public class OracleModelImp implements OracleModel{
 		// this.clf = null;
 	}
 	
-	public void learn(File inputFile, double fpr) throws Exception {
+	public void learn(File inputFile) throws Exception {
 		// Assuming the input file is a CSV
 		StructType schema = new StructType()
 				.add("url", "string")

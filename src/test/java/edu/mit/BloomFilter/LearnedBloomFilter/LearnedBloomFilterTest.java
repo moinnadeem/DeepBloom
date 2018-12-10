@@ -28,10 +28,9 @@ public class LearnedBloomFilterTest {
 		
 		// Learn and setup learned filter
 		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
-		double fprForOracleModel = 0.05;
 		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, fprForOracleModel, fprForBackupFilter);
+			filter.initAndLearn(inputDataFile, fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail("Exception: "+ e.getMessage());
@@ -64,10 +63,9 @@ public class LearnedBloomFilterTest {
 
 		// Learn and setup learned filter
 		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
-		double fprForOracleModel = 0.05;
 		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, fprForOracleModel, fprForBackupFilter);
+			filter.initAndLearn(inputDataFile, fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail("Exception: "+ e.getMessage());
