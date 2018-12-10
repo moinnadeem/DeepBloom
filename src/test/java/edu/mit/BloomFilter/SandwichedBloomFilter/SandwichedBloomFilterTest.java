@@ -4,8 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
-//import edu.mit.BloomFilter.OracleModel.OracleModelImp;
-import edu.mit.BloomFilter.OracleModel.OracleModelImpMock;
+import edu.mit.BloomFilter.OracleModel.OracleModelImp;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 import org.junit.Assert;
@@ -186,7 +185,7 @@ public class SandwichedBloomFilterTest {
 	@Test
 	public void classificationTest() {
 		File inputDataFile = new File("model_training/data.csv");
-		OracleModel model = new OracleModelImpMock();
+		OracleModel model = new OracleModelImp();
 		try {
 			model.learn(inputDataFile);
 			model.save("full_model");

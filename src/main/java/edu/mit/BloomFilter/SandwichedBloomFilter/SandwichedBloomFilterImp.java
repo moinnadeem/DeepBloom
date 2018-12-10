@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
-import edu.mit.BloomFilter.OracleModel.OracleModelImpMock;
+import edu.mit.BloomFilter.OracleModel.OracleModelImp;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 
@@ -86,7 +86,7 @@ public class SandwichedBloomFilterImp{
 		System.out.println("numberOfFalsePositiveItemsFromTheInitialFilter:" + numberOfFalsePositiveItemsFromTheInitialFilter);
 		
 		// learn the oracle function
-		learnedOracle = new OracleModelImpMock();
+		learnedOracle = new OracleModelImp();
 		double fpr2 = fprForTheInitialFilter; // Need to change
 		try {
 			learnedOracle.learn(inputDataFile);
@@ -264,7 +264,7 @@ public class SandwichedBloomFilterImp{
 		initialFilter = new StandardBloomFilterImpl();
 		initialFilter.load(new File(initialFilterFile));
 		
-		learnedOracle = new OracleModelImpMock();
+		learnedOracle = new OracleModelImp();
 		try {
 			learnedOracle.load(learnedOracleFile);
 		} catch (Exception e) {
