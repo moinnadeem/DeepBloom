@@ -1,6 +1,8 @@
 package edu.mit.BloomFilter.OracleModel;
 
 import java.io.File;
+import java.sql.Timestamp;
+import java.util.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,6 +12,21 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.ml.classification.BinaryLogisticRegressionSummary;
 import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.classification.NaiveBayes;
+import org.apache.spark.ml.classification.LinearSVC;
+import org.apache.spark.ml.classification.LinearSVCModel;
+import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
+import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
+import org.apache.spark.ml.classification.DecisionTreeClassifier;
+import org.apache.spark.ml.classification.DecisionTreeClassificationModel;
+import org.apache.spark.ml.classification.NaiveBayesModel;
+import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
+import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
+import org.apache.spark.ml.classification.RandomForestClassificationModel;
+import org.apache.spark.ml.classification.RandomForestClassifier;
+import org.apache.spark.ml.feature.*;
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics;
+import org.apache.spark.sql.*;
 import org.apache.spark.ml.classification.LogisticRegressionModel;
 import org.apache.spark.ml.feature.CountVectorizer;
 import org.apache.spark.ml.feature.CountVectorizerModel;
@@ -26,6 +43,7 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.apache.zookeeper.KeeperException;
 
 public class OracleModelImp implements OracleModel{
 
@@ -41,7 +59,6 @@ public class OracleModelImp implements OracleModel{
 	 * Constructor.
 	 */
 	public OracleModelImp() {
-		// this.clf = null;
 	}
 	
 	public void learn(File inputFile) throws Exception {
@@ -51,8 +68,11 @@ public class OracleModelImp implements OracleModel{
 				.add("labelString", "string");
 
 		SparkConf configuration = new SparkConf()
-				.setAppName("Your Application Name")
-				.setMaster("local");
+				.setAppName("Learned Oracle")
+				.setMaster("local")
+                .set("spark.default.parallelism", "300")
+                .set("spark.sql.shuffle.partitions", "300");
+
 		SparkContext sc = new SparkContext(configuration);
 		sc.setLogLevel("ERROR");
 
@@ -77,7 +97,7 @@ public class OracleModelImp implements OracleModel{
 		cvModel = new CountVectorizer()
 				.setInputCol("ngrams")
 				.setOutputCol("features")
-				.setVocabSize(3000)
+				.setVocabSize(2500)
 				.setMinDF(2)
 				.fit(tokenized);
 
@@ -91,44 +111,38 @@ public class OracleModelImp implements OracleModel{
 
 		Dataset<Row> final_df = indexer.transform(tokenized);
 
-		//:LogisticRegression lr = new LogisticRegression();
 		LogisticRegression lr = new LogisticRegression().setMaxIter(500).setStandardization(false).setTol(1e-8).setElasticNetParam(0.8).setRegParam(0.0);
+        int[] layers = new int[] {2500, 500, 200, 2};
+        // MultilayerPerceptronClassifier lr = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSize(128);
 
+
+        // RandomForestClassifier lr = new RandomForestClassifier().set;
+        System.out.println("About to start training...");
 		model = lr.fit(final_df);
 
-		double[] history = model.summary().objectiveHistory();
-		BinaryLogisticRegressionSummary binarySummary = (BinaryLogisticRegressionSummary) model.summary();
-		double auc = binarySummary.areaUnderROC();
-		System.out.println("AuC: " + String.valueOf(auc));
+		if (model instanceof LogisticRegressionModel) {
+            double[] history = model.summary().objectiveHistory();
+            BinaryLogisticRegressionSummary binarySummary = (BinaryLogisticRegressionSummary) model.summary();
+        	double auc = binarySummary.areaUnderROC();
+            System.out.println("AuC: " + String.valueOf(auc));
 
-        System.out.println("PR");
-		binarySummary.pr().show();
+            System.out.println("PR");
+            binarySummary.pr().show();
 
-        Dataset<Row> fMeasure = binarySummary.fMeasureByThreshold();
-        double maxFMeasure = fMeasure.select(functions.max("F-Measure")).head().getDouble(0);
-        double bestThreshold = fMeasure.where(fMeasure.col("F-Measure").equalTo(maxFMeasure))
-                .select("threshold").head().getDouble(0);
-        lr.setThreshold(bestThreshold);
+            Dataset<Row> fMeasure = binarySummary.fMeasureByThreshold();
+            double maxFMeasure = fMeasure.select(functions.max("F-Measure")).head().getDouble(0);
+            double bestThreshold = fMeasure.where(fMeasure.col("F-Measure").equalTo(maxFMeasure))
+                    .select("threshold").head().getDouble(0);
+            lr.setThreshold(bestThreshold);
+        }
 
         this.df = model.transform(final_df);
 
 		String[] cols = new String[]{"prediction"};
 		Dataset<Row> df_to_write = this.df.select("label", cols);
-        df_to_write.write().option("header", "true").csv("./final_df_2.csv");
-//		Row firstRow = final_df.first();
-//        int predIdx = firstRow.fieldIndex("prediction");
-//        int labelIdx = firstRow.fieldIndex("label");
-//        int accuracy = 0;
-//        Iterator<Row> iter = final_df.toLocalIterator();
-//        while (iter.hasNext()) {
-//           Row r = iter.next();
-//           if (r.get(labelIdx).equals(r.get(predIdx))) {
-//               accuracy += 1;
-//            }
-//        }
-//        System.out.println("Accuracy: " + String.valueOf(accuracy));
-//        long finalAcc =  ((long) accuracy) / df.count();
-//        System.out.println("Final accuracy: " + String.valueOf(finalAcc));
+		String timeAsString = new Timestamp(System.currentTimeMillis()).toString();
+		String filename = String.format("final_df_model_%s_%s", model.getClass().toString(), timeAsString);
+        df_to_write.write().option("header", "true").csv(filename);
     }
 
     public HashSet<String> getClassifications(boolean isTrue) throws Exception {
@@ -162,7 +176,7 @@ public class OracleModelImp implements OracleModel{
         return ((double) results.get(0) >= 0.5);
 	}
 
-	public int numFalsePositive(File inputFile) throws Exception {
+	public int getNumberOfFalsePos(File inputFile) throws Exception {
 	    StructType schema = new StructType()
 				.add("url", "string")
 				.add("labelString", "string");
@@ -176,6 +190,7 @@ public class OracleModelImp implements OracleModel{
 	    df = regexTokenizer.transform(df);
         df = ngramTransformer.transform(df);
         df = cvModel.transform(df);
+
         // bad is 1, good is 0
         df = indexer.transform(df);
         df = model.transform(df);
