@@ -58,6 +58,7 @@ public class PerformanceAnalysis {
 		// Determining FPR and query time
 		int numberOfFalsePositiveItems = 0;
 		int numberOfLinesWithWrongFormat = 0;
+		int numberOfItemsWithNegativeLabel = 0;
 		lineNo = 0;
 		boolean isContain;
 		long startTime;
@@ -88,6 +89,7 @@ public class PerformanceAnalysis {
 						System.err.println("False Negative: This cannot happen. Something is off");
 					}
 				} else if (label.equals(labelNegative)) {
+					numberOfItemsWithNegativeLabel++;
 					if (isContain) {
 						numberOfFalsePositiveItems++;
 						// System.out.println("False positive: "+ url);
@@ -96,11 +98,12 @@ public class PerformanceAnalysis {
 
 			}
 			System.out.println("numberOfFalsePositiveItems:" + numberOfFalsePositiveItems);
+			System.out.println("numberOfItemsWithNegativeLabel:" + numberOfItemsWithNegativeLabel);
 			// System.out.println("numberOfLinesWithWrongFormat:" +
 			// numberOfLinesWithWrongFormat);
 			int numberOfValidItems = (lineNo - numberOfLinesWithWrongFormat);
 			System.out.println("Total number of valid items:" + numberOfValidItems);
-			System.out.println("FPR for the filter: " + (double) numberOfFalsePositiveItems / (double) (numberOfValidItems));
+			System.out.println("FPR for the filter: " + (double) numberOfFalsePositiveItems / (double) (numberOfItemsWithNegativeLabel));
 			System.out.println("Size of the filter (in bytes): " + (filter.getM() / 8));
 
 //			System.out.println("Total query time (in nanosecond): " + totalQueryTime);
