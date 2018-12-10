@@ -19,6 +19,7 @@ public class Swing extends JFrame {
 	private JFileChooser chooser;
 	private JTextField fileField = new JTextField(200);
 	private String filePath = "";
+	private double fpr = 0.0;
 	private JTextArea textArea = new JTextArea();
 	
 	public Swing() {
@@ -65,18 +66,23 @@ public class Swing extends JFrame {
 		c1.gridwidth = 3;
 		pane.add(this.makeFileTextField(), c1);
 		
-	    GridBagConstraints c3 = getGridConstraints(3, 0);
-	    c3.weightx = 0.5;
-	    c3.gridwidth = 1;
-	    pane.add(this.makeChooseFileButton(), c3);
+	    GridBagConstraints c2 = getGridConstraints(3, 0);
+	    c2.weightx = 0.5;
+	    c2.gridwidth = 1;
+	    pane.add(this.makeChooseFileButton(), c2);
 
-	    GridBagConstraints c4 = getGridConstraints(0, 1);
+		GridBagConstraints c3 = getGridConstraints(0, 1);
+		c3.weightx = 0.5;
+		c3.gridwidth = GridBagConstraints.REMAINDER;
+		pane.add(this.makeFprField(), c3);
+	    
+	    GridBagConstraints c4 = getGridConstraints(0, 2);
 	    c4.ipady = 40;      //make this component tall
 	    c4.weightx = 0.0;
 	    c4.gridwidth = GridBagConstraints.REMAINDER;
 	    pane.add(this.makeLearnButton(), c4);
 	 
-	    GridBagConstraints c5 = getGridConstraints(0, 2);
+	    GridBagConstraints c5 = getGridConstraints(0, 3);
 	    c5.ipady = 0;       //reset to default
 	    c5.weighty = 1.0;   //request any extra vertical space
 	    c5.gridheight = GridBagConstraints.REMAINDER;
@@ -141,13 +147,38 @@ public class Swing extends JFrame {
 		return fileButton;
 	}
 	
+	private JPanel makeFprField() {
+		JPanel panel = new JPanel();
+		panel.setOpaque(false);
+//		panel.setLayout(new BorderLayout());
+
+        SpinnerModel model = new SpinnerNumberModel(0, //initial value
+                                       0, //min
+                                       1, //max
+                                       0.01);                //step
+        JSpinner spinner = new JSpinner(model);
+        //Make the year be formatted without a thousands separator.
+        spinner.setEditor(new JSpinner.NumberEditor(spinner, "#%"));
+        spinner.addChangeListener((e) -> {
+        		this.fpr = ((SpinnerNumberModel) spinner.getModel()).getNumber().doubleValue();
+        });
+        
+		JLabel l = new JLabel("False Positive Rate - FPR (%)");
+        l.setLabelFor(spinner);
+        
+        panel.add(l);
+        panel.add(spinner);
+        return panel;
+	}
+	
 	private JButton makeLearnButton() {
 		JButton b = new JButton("Learn Bloom Filter");
 	    b.setVerticalTextPosition(AbstractButton.CENTER);
         b.setHorizontalTextPosition(AbstractButton.LEADING); 
 		
 		b.addActionListener((e) -> {
-			this.textArea.setText("Bloom filter has been learned from file: " + this.filePath);
+			this.textArea.setText("Bloom filter has been learned from file: " + this.filePath 
+					+ " with fpr of " + this.fpr);
 //				JOptionPane.showMessageDialog(b, "Hello World!");
 			// TODO: ADD CODE HERE TO LEARN BLOOM FILTER
 			
