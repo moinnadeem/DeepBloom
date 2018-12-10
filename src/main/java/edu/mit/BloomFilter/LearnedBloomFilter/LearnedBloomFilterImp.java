@@ -1,4 +1,4 @@
-package edu.mit.BloomFilter.BloomLearnedFilter;
+package edu.mit.BloomFilter.LearnedBloomFilter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,7 +12,6 @@ import java.io.OutputStream;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
 import edu.mit.BloomFilter.OracleModel.OracleModelImp;
-import edu.mit.BloomFilter.OracleModel.OracleModelImpMock;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 
@@ -25,12 +24,12 @@ public class LearnedBloomFilterImp {
 		// will need to either call initAndLearn or load
 	}
 	
-	public void initAndLearn(File inputDataFile, double fprForOracleModel, double fprForBackupFilter) throws FileNotFoundException, IOException {
+	public void initAndLearn(File inputDataFile, double fprForBackupFilter) throws FileNotFoundException, IOException {
 		
 		// learn the oracle function
 		learnedOracle = new OracleModelImp();
 		try {
-			learnedOracle.learn(inputDataFile, fprForOracleModel);
+			learnedOracle.learn(inputDataFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

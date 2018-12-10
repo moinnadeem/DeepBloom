@@ -8,7 +8,6 @@ import java.io.IOException;
 
 import org.junit.Assert;
 
-import edu.mit.BloomFilter.BloomLearnedFilter.LearnedBloomFilterImp;
 import edu.mit.BloomFilter.Utils.InputFileInfo;
 
 public class PerformanceAnalysis {
@@ -26,11 +25,9 @@ public class PerformanceAnalysis {
 
 		// Learn and setup learned filter
 		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
-		double fprForOracleModel = 0.05;
 		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, fprForOracleModel,
-					fprForBackupFilter);
+			filter.initAndLearn(inputDataFile, fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail("Exception: " + e.getMessage());

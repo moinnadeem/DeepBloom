@@ -87,9 +87,8 @@ public class SandwichedBloomFilterImp{
 		
 		// learn the oracle function
 		learnedOracle = new OracleModelImp();
-		double fpr2 = fprForTheInitialFilter; // Need to change
 		try {
-			learnedOracle.learn(inputDataFile, fpr2);
+			learnedOracle.learn(inputDataFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
