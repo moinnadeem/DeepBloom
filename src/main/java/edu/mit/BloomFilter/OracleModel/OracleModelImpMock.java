@@ -58,11 +58,11 @@ public class OracleModelImpMock implements OracleModel{
 	}
 	
 	public void save(String s) throws Exception {
-		throw new Exception("Not implemented");
+		// NO OP
 	}
 
 	public void load(String s) throws Exception {
-		throw new Exception("Not implemented");
+		// NO OP
 	}
 
 	@Override
