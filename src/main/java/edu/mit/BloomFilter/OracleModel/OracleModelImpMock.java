@@ -13,7 +13,7 @@ public class OracleModelImpMock implements OracleModel{
 	}
 
 	@Override
-	public int numFalsePositive(File f) {
+	public int getNumberOfFalsePos(File f) {
 		return 0;
 	}
 

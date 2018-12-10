@@ -61,6 +61,7 @@ public class OracleModelImp implements OracleModel{
 	public OracleModelImp() {
 	}
 	
+	@Override
 	public void learn(File inputFile) throws Exception {
 		// Assuming the input file is a CSV
 		StructType schema = new StructType()
@@ -157,6 +158,7 @@ public class OracleModelImp implements OracleModel{
         return set;
     }
 
+    @Override
 	public boolean classify(String url) throws Exception {
         List<Row> data = Arrays.asList(
                 RowFactory.create(url)
@@ -176,6 +178,7 @@ public class OracleModelImp implements OracleModel{
         return ((double) results.get(0) >= 0.5);
 	}
 
+	@Override
 	public int getNumberOfFalsePos(File inputFile) throws Exception {
 	    StructType schema = new StructType()
 				.add("url", "string")
@@ -212,15 +215,17 @@ public class OracleModelImp implements OracleModel{
         return fp;
     }
 
-	
+	@Override
 	public String printSize() {
 	    return String.valueOf(this.getSize());
 	}
 	
+	@Override
 	public void save(String s) throws Exception {
 	    model.write().overwrite().save(s);
 	}
-
+	
+	@Override
 	public void load(String s) throws Exception {
 	    model = LogisticRegressionModel.load(s);
 	}

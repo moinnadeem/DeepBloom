@@ -96,7 +96,7 @@ public class SandwichedBloomFilterImp{
 		// count the number of items that would be in backupFilter
         int numberOfItemsInBackupFilter = 0;
 		try {
-			numberOfItemsInBackupFilter = learnedOracle.numFalsePositive(inputDataFile);
+			numberOfItemsInBackupFilter = learnedOracle.getNumberOfFalsePos(inputDataFile);
 			System.out.println("numberOfItemsInBackupFilter:" + numberOfItemsInBackupFilter);
 		} catch (Exception e) {
 			e.printStackTrace();

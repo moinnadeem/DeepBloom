@@ -18,7 +18,7 @@ public interface OracleModel {
 	
 	public void load(String file) throws Exception;
 
-	public int numFalsePositive(File f) throws Exception;
+	public int getNumberOfFalsePos(File f) throws Exception;
 
 	public HashSet<String> getClassifications(boolean isTrue) throws Exception;
 }
