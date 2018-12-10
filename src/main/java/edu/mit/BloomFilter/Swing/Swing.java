@@ -2,8 +2,12 @@ package edu.mit.BloomFilter.Swing;
 
 import javax.swing.*;
 
+import edu.mit.BloomFilter.SandwichedBloomFilter.SandwichedBloomFilterImp;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * - Input a file and set a FPR
@@ -15,10 +19,17 @@ import java.awt.event.KeyEvent;
 public class Swing extends JFrame {
 	private static final long serialVersionUID = 1L;
 
+	private static final double BACKUP_FPR = 0.01;
+	private static final double INITIAL_FPR = 0.1;
+	private static final int APPROX_N = 344821;
+	private static final File DEFAULT_FILE = new File("model_training/data.csv");
+	private SandwichedBloomFilterImp sandwichedBf = new SandwichedBloomFilterImp();
+	
 	private JButton fileButton = new JButton("Choose File");
 	private JFileChooser chooser;
 	private JTextField fileField = new JTextField(200);
 	private String filePath = "";
+	private File selectedFile;
 	private double fpr = 0.0;
 	private JTextArea textArea = new JTextArea();
 	
@@ -137,7 +148,8 @@ public class Swing extends JFrame {
         		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
         			System.out.println("getCurrentDirectory(): " + chooser.getCurrentDirectory());
         			System.out.println("getSelectedFile(): " + chooser.getSelectedFile());
-        			String filepath = chooser.getSelectedFile().getAbsolutePath();
+        			this.selectedFile = chooser.getSelectedFile();
+        			String filepath = selectedFile.getAbsolutePath();
         			this.fileField.setText(filepath);
         			this.filePath = filepath;
         		} else {
@@ -152,7 +164,7 @@ public class Swing extends JFrame {
 		panel.setOpaque(false);
 //		panel.setLayout(new BorderLayout());
 
-        SpinnerModel model = new SpinnerNumberModel(0, //initial value
+        SpinnerModel model = new SpinnerNumberModel(INITIAL_FPR, //initial value
                                        0, //min
                                        1, //max
                                        0.01);                //step
@@ -179,6 +191,12 @@ public class Swing extends JFrame {
 		b.addActionListener((e) -> {
 			this.textArea.setText("Bloom filter has been learned from file: " + this.filePath 
 					+ " with fpr of " + this.fpr);
+			try {
+				this.sandwichedBf.initAndLearn(DEFAULT_FILE, APPROX_N, this.fpr, BACKUP_FPR);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 //				JOptionPane.showMessageDialog(b, "Hello World!");
 			// TODO: ADD CODE HERE TO LEARN BLOOM FILTER
 			
