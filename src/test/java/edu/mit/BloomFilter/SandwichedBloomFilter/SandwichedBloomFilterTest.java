@@ -1,13 +1,11 @@
 package edu.mit.BloomFilter.SandwichedBloomFilter;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
 import edu.mit.BloomFilter.OracleModel.OracleModelImp;
+import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
+import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +27,7 @@ public class SandwichedBloomFilterTest {
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
 		File inputDataFile = new File("model_training/data.csv");
 		int approximateN = 350000;
-		double fprForTheInitialFilter = 0.10;
+		double fprForTheInitialFilter = 0.25;
 		double fprForTheBackupFilter = 0.01;
 		try {
 			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter, fprForTheBackupFilter);
@@ -99,6 +97,54 @@ public class SandwichedBloomFilterTest {
 			model.learn(inputDataFile, 0.02);
 			model.save("full_model");
 			model.classify("https://moinnadeem.com");
+		} catch (Exception e) {
+			System.out.println("An exception as occurred");
+			e.printStackTrace();
+		}
+	}
+
+	@Test
+	public void regularTest() {
+	File inputDataFile = new File("model_training/data.csv");
+    StandardBloomFilter model = new StandardBloomFilterImpl();
+		try {
+			int n1 = 430000;
+
+            double fpr1 = 0.02;
+            model = new StandardBloomFilterImpl(n1, fpr1);
+
+            String labelPositive = "good";
+            String labelNegative = "bad";
+            int totalLines = 0;
+            // Go through the input file to add items to the initial filter
+            int numberOfItemsInInitialFilter = 0;
+            try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+                int lineNo = 0;
+                String line;
+                while((line = reader.readLine())!= null) {
+                    lineNo ++;
+                    // each line has a format: "url,bad/good"
+                    // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+                    int index = line.lastIndexOf(',');
+                    String url = line.substring(0, index);
+                    String label = line.substring(index+1, line.length());
+
+                    if (!label.equals(labelPositive) && !label.equals(labelNegative)) {
+                        System.out.println("Wrong format for line #"+ lineNo + ". Line = " + line);
+                        continue;
+                    }
+                    if (label.equals(labelPositive)) {
+                        model.add(url);
+                        numberOfItemsInInitialFilter++;
+                    }
+                }
+                totalLines =  lineNo;
+            }
+            System.out.println("numberOfItemsInInitialFilter:" + numberOfItemsInInitialFilter);
+
+            OutputStream outputStream1 = new FileOutputStream("standardFilter");
+            model.save(outputStream1);
+            outputStream1.close();
 		} catch (Exception e) {
 			System.out.println("An exception as occurred");
 			e.printStackTrace();
