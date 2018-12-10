@@ -27,7 +27,7 @@ public class SandwichedBloomFilterImp{
 		// will need to either call initAndLearn or load
 	}
 	
-	public void initAndLearn(File inputDataFile, int approximateN, double fprForTheInitialFilter, double fprForTheBackupFilter) throws FileNotFoundException, IOException {
+	public void initAndLearn(File inputDataFile, int approximateN, double fprForTheInitialFilter, double fprForTheBackupFilter) throws IOException {
 		int n1 = approximateN;
 		double fpr1 = fprForTheInitialFilter; 
 		initialFilter = new StandardBloomFilterImpl(n1, fpr1);
@@ -87,6 +87,7 @@ public class SandwichedBloomFilterImp{
 		
 		// learn the oracle function
 		learnedOracle = new OracleModelImp();
+		double fpr2 = fprForTheInitialFilter; // Need to change
 		try {
 			learnedOracle.learn(inputDataFile);
 		} catch (Exception e) {
@@ -161,26 +162,6 @@ public class SandwichedBloomFilterImp{
 		}
 	}
 
-	public static void progressPercentage(int remain, int total) {
-		if (remain > total) {
-			throw new IllegalArgumentException();
-		}
-		int maxBareSize = 10; // 10unit for 100%
-		int remainProcent = ((100 * remain) / total) / maxBareSize;
-		char defaultChar = '-';
-		String icon = "*";
-		String bare = new String(new char[maxBareSize]).replace('\0', defaultChar) + "]";
-		StringBuilder bareDone = new StringBuilder();
-		bareDone.append("[");
-		for (int i = 0; i < remainProcent; i++) {
-			bareDone.append(icon);
-		}
-		String bareRemain = bare.substring(remainProcent, bare.length());
-		System.out.print("\r" + bareDone + bareRemain + " " + remainProcent * 10 + "%");
-		if (remain == total) {
-			System.out.print("\n");
-		}
-	}
 	public boolean contains(String s) {
 		boolean isContain = initialFilter.contains(s);
 		if (!isContain) {

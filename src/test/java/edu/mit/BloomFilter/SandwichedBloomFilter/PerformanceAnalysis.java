@@ -26,16 +26,19 @@ public class PerformanceAnalysis {
 		// Learn and setup learned filter
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
 		int approximateN = 344821;
-		double fprForOracleModel = 0.05;
+		double fprForTheInitialFilter = 0.05;
 		double fprForBackupFilter = 0.01;
 		try {
-			filter.initAndLearn(inputDataFile, approximateN, fprForOracleModel,
+			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter,
 					fprForBackupFilter);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail("Exception: " + e.getMessage());
 		}
-		
+
+		System.out.println("About to run contains...");
+		filter.contains("https://moinnadeem.com");
+
 		// Determining FPR and query time
 		String labelPositive = "good";
 		String labelNegative = "bad";

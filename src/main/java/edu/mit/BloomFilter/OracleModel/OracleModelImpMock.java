@@ -12,11 +12,6 @@ public class OracleModelImpMock implements OracleModel{
 	public OracleModelImpMock() {
 	}
 
-	@Override
-	public int getNumberOfFalsePos(File f) {
-		return 0;
-	}
-
 	public HashSet<String> getClassifications(boolean isTrue) throws Exception {
 		return new HashSet<String>();
     }
@@ -63,13 +58,19 @@ public class OracleModelImpMock implements OracleModel{
 	}
 	
 	public void save(String s) throws Exception {
+		throw new Exception("Not implemented");
 	}
 
 	public void load(String s) throws Exception {
+		throw new Exception("Not implemented");
 	}
 
 	@Override
 	public int getSize() {
 		return 0;
+	}
+
+	public int getNumberOfFalsePos(File f) throws Exception {
+		throw new Exception("Not implemented");
 	}
 }

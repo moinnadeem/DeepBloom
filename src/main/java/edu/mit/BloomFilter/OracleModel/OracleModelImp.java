@@ -45,86 +45,85 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.apache.zookeeper.KeeperException;
 
-public class OracleModelImp implements OracleModel{
+public class OracleModelImp implements OracleModel {
 
-	LogisticRegressionModel model;
-	RegexTokenizer regexTokenizer;
-	NGram ngramTransformer;
-	CountVectorizerModel cvModel;
-	StringIndexerModel indexer;
-	SparkSession spark;
-	Dataset<Row> df;
+    LogisticRegressionModel model;
+    RegexTokenizer regexTokenizer;
+    NGram ngramTransformer;
+    CountVectorizerModel cvModel;
+    StringIndexerModel indexer;
+    SparkSession spark;
+    Dataset<Row> df;
 
-	/**
-	 * Constructor.
-	 */
-	public OracleModelImp() {
-	}
-	
-	@Override
-	public void learn(File inputFile) throws Exception {
-		// Assuming the input file is a CSV
-		StructType schema = new StructType()
-				.add("url", "string")
-				.add("labelString", "string");
+    /**
+     * Constructor.
+     */
+    public OracleModelImp() {
+    }
 
-		SparkConf configuration = new SparkConf()
-				.setAppName("Learned Oracle")
-				.setMaster("local")
+    public void learn(File inputFile) throws Exception {
+        // Assuming the input file is a CSV
+        StructType schema = new StructType()
+                .add("url", "string")
+                .add("labelString", "string");
+
+        SparkConf configuration = new SparkConf()
+                .setAppName("Learned Oracle")
+                .setMaster("local")
                 .set("spark.default.parallelism", "300")
                 .set("spark.sql.shuffle.partitions", "300");
 
-		SparkContext sc = new SparkContext(configuration);
-		sc.setLogLevel("ERROR");
+        SparkContext sc = new SparkContext(configuration);
+        sc.setLogLevel("ERROR");
 
-		spark = new SparkSession(sc);
+        spark = new SparkSession(sc);
 
-		Dataset<Row> df = spark.read()
-				.option("mode", "DROPMALFORMED")
+        Dataset<Row> df = spark.read()
+                .option("mode", "DROPMALFORMED")
                 .option("header", "true")
-				.schema(schema)
-				.csv(inputFile.getPath());
+                .schema(schema)
+                .csv(inputFile.getPath());
 
-		regexTokenizer = new RegexTokenizer()
-				.setInputCol("url")
-				.setOutputCol("tokenized_url")
-				.setPattern("");
+        regexTokenizer = new RegexTokenizer()
+                .setInputCol("url")
+                .setOutputCol("tokenized_url")
+                .setPattern("");
 
-		Dataset<Row> tokenized = regexTokenizer.transform(df);
+        Dataset<Row> tokenized = regexTokenizer.transform(df);
 
-		ngramTransformer = new NGram().setN(3).setInputCol("tokenized_url").setOutputCol("ngrams");
-		tokenized = ngramTransformer.transform(tokenized);
+        ngramTransformer = new NGram().setN(3).setInputCol("tokenized_url").setOutputCol("ngrams");
+        tokenized = ngramTransformer.transform(tokenized);
 
-		cvModel = new CountVectorizer()
-				.setInputCol("ngrams")
-				.setOutputCol("features")
-				.setVocabSize(2500)
-				.setMinDF(2)
-				.fit(tokenized);
+        cvModel = new CountVectorizer()
+                .setInputCol("ngrams")
+                .setOutputCol("features")
+                .setVocabSize(2500)
+                .setMinDF(2)
+                .fit(tokenized);
 
-		tokenized = cvModel.transform(tokenized);
+        tokenized = cvModel.transform(tokenized);
 
-		indexer = new StringIndexer()
-				.setInputCol("labelString")
-				.setOutputCol("label")
-				.fit(tokenized);
+        indexer = new StringIndexer()
+                .setInputCol("labelString")
+                .setOutputCol("label")
+                .fit(tokenized);
 
 
-		Dataset<Row> final_df = indexer.transform(tokenized);
+        Dataset<Row> final_df = indexer.transform(tokenized);
 
-		LogisticRegression lr = new LogisticRegression().setMaxIter(500).setStandardization(false).setTol(1e-8).setElasticNetParam(0.8).setRegParam(0.0);
-        int[] layers = new int[] {2500, 500, 200, 2};
+        LogisticRegression lr = new LogisticRegression().setMaxIter(500).setStandardization(false).setTol(1e-8).setElasticNetParam(0.8).setRegParam(0.0);
+        int[] layers = new int[]{2500, 500, 200, 2};
         // MultilayerPerceptronClassifier lr = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSize(128);
 
 
         // RandomForestClassifier lr = new RandomForestClassifier().set;
         System.out.println("About to start training...");
-		model = lr.fit(final_df);
+        model = lr.fit(final_df);
 
-		if (model instanceof LogisticRegressionModel) {
+        if (model instanceof LogisticRegressionModel) {
             double[] history = model.summary().objectiveHistory();
             BinaryLogisticRegressionSummary binarySummary = (BinaryLogisticRegressionSummary) model.summary();
-        	double auc = binarySummary.areaUnderROC();
+            double auc = binarySummary.areaUnderROC();
             System.out.println("AuC: " + String.valueOf(auc));
 
             System.out.println("PR");
@@ -139,17 +138,17 @@ public class OracleModelImp implements OracleModel{
 
         this.df = model.transform(final_df);
 
-		String[] cols = new String[]{"prediction"};
-		Dataset<Row> df_to_write = this.df.select("label", cols);
-		String timeAsString = new Timestamp(System.currentTimeMillis()).toString();
-		String filename = String.format("final_df_model_%s_%s", model.getClass().toString(), timeAsString);
+        String[] cols = new String[]{"prediction"};
+        Dataset<Row> df_to_write = this.df.select("label", cols);
+        String timeAsString = new Timestamp(System.currentTimeMillis()).toString();
+        String filename = String.format("final_df_model_%s_%s", model.getClass().toString(), timeAsString);
         df_to_write.write().option("header", "true").csv(filename);
     }
 
     public HashSet<String> getClassifications(boolean isTrue) throws Exception {
         Dataset<Row> s = df.where("prediction==" + String.valueOf(isTrue));
         Dataset<Row> a = s.select("url");
-        Iterator<Row> iter =  a.toLocalIterator();
+        Iterator<Row> iter = a.toLocalIterator();
         HashSet<String> set = new HashSet<>();
         while (iter.hasNext()) {
             Row r = iter.next();
@@ -158,39 +157,50 @@ public class OracleModelImp implements OracleModel{
         return set;
     }
 
-    @Override
-	public boolean classify(String url) throws Exception {
+    public boolean classify(String url) throws Exception {
+        long startTime = System.nanoTime();
+
         List<Row> data = Arrays.asList(
                 RowFactory.create(url)
         );
+        System.out.println("Total time taken to run array creation: " + String.valueOf(System.nanoTime() - startTime));
 
+        startTime = System.nanoTime();
         StructType schema = new StructType(new StructField[]{
                 new StructField("url", DataTypes.StringType, false, Metadata.empty())
         });
+        System.out.println("Total time taken to run structure creation: " + String.valueOf(System.nanoTime() - startTime));
 
+        startTime = System.nanoTime();
         Dataset<Row> df = spark.createDataFrame(data, schema);
+        System.out.println("Total time taken to run create dataframe: " + String.valueOf(System.nanoTime() - startTime));
 
+        startTime = System.nanoTime();
         df = regexTokenizer.transform(df);
         df = ngramTransformer.transform(df);
         df = cvModel.transform(df);
+        System.out.println("Total time taken to preprocess dataset: " + String.valueOf(System.nanoTime() - startTime));
+
+        startTime = System.nanoTime();
         df = model.transform(df);
         Row results = df.select("prediction").first();
+        System.out.println("Total time taken to run predictions: " + String.valueOf(System.nanoTime() - startTime));
+
         return ((double) results.get(0) >= 0.5);
-	}
+    }
 
-	@Override
-	public int getNumberOfFalsePos(File inputFile) throws Exception {
-	    StructType schema = new StructType()
-				.add("url", "string")
-				.add("labelString", "string");
+    public int getNumberOfFalsePos(File inputFile) throws Exception {
+        StructType schema = new StructType()
+                .add("url", "string")
+                .add("labelString", "string");
 
-	    Dataset<Row> df = spark.read()
-				.option("mode", "DROPMALFORMED")
+        Dataset<Row> df = spark.read()
+                .option("mode", "DROPMALFORMED")
                 .option("header", "true")
-				.schema(schema)
-				.csv(inputFile.getPath());
+                .schema(schema)
+                .csv(inputFile.getPath());
 
-	    df = regexTokenizer.transform(df);
+        df = regexTokenizer.transform(df);
         df = ngramTransformer.transform(df);
         df = cvModel.transform(df);
 
@@ -203,36 +213,34 @@ public class OracleModelImp implements OracleModel{
         Iterator<Row> iter = df.toLocalIterator();
         int fp = 0;
         while (iter.hasNext()) {
-           Row r = iter.next();
-           int pred = (int) ((double) r.get(predIdx));
-           String label = (String) r.get(labelIdx);
-           if (label.equals("good")) {
-               if (pred==1) {
-                fp += 1;
-               }
-           }
+            Row r = iter.next();
+            int pred = (int) ((double) r.get(predIdx));
+            String label = (String) r.get(labelIdx);
+            if (label.equals("good")) {
+                if (pred == 1) {
+                    fp += 1;
+                }
+            }
         }
         return fp;
     }
 
-	@Override
-	public String printSize() {
-	    return String.valueOf(this.getSize());
-	}
-	
-	@Override
-	public void save(String s) throws Exception {
-	    model.write().overwrite().save(s);
-	}
-	
-	@Override
-	public void load(String s) throws Exception {
-	    model = LogisticRegressionModel.load(s);
-	}
 
-	@Override
-	public int getSize() {
-		// return model.coefficients().size();
+    public String printSize() {
+        return String.valueOf(this.getSize());
+    }
+
+    public void save(String s) throws Exception {
+        model.write().overwrite().save(s);
+    }
+
+    public void load(String s) throws Exception {
+        model = LogisticRegressionModel.load(s);
+    }
+
+    @Override
+    public int getSize() {
+        // return model.coefficients().size();
         return 0;
-	}
+    }
 }

@@ -1,6 +1,8 @@
 package edu.mit.BloomFilter.OracleModel;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashSet;
 
 public interface OracleModel {
@@ -14,9 +16,9 @@ public interface OracleModel {
 	
 	public String printSize();
 
-	public void save(String file) throws Exception;
+	public void save(String s) throws Exception;
 	
-	public void load(String file) throws Exception;
+	public void load(String s) throws Exception;
 
 	public int getNumberOfFalsePos(File f) throws Exception;
 
