@@ -9,19 +9,19 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
-import edu.mit.BloomFilter.OracleModel.OracleModelImp;
 import edu.mit.BloomFilter.OracleModel.OracleModelImpMock;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilter;
 import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 
 public class SandwichedBloomFilterImp{
 	
-	private StandardBloomFilter initialFilter;
-	private OracleModel learnedOracle;
-	private StandardBloomFilter backupFilter;
+	public StandardBloomFilter initialFilter;
+	public OracleModel learnedOracle;
+	public StandardBloomFilter backupFilter;
 
 	public SandwichedBloomFilterImp() {
 		// will need to either call initAndLearn or load
@@ -78,7 +78,7 @@ public class SandwichedBloomFilterImp{
 //						url = url.replace("%","");
 //						writer.write(url+"," + label + "\n");
 //						writer.write(url+"\n");
-						numberOfFalsePositiveItemsFromTheInitialFilter++;
+                        numberOfFalsePositiveItemsFromTheInitialFilter++;
 					}
 				}
 			}		
@@ -86,7 +86,7 @@ public class SandwichedBloomFilterImp{
 		System.out.println("numberOfFalsePositiveItemsFromTheInitialFilter:" + numberOfFalsePositiveItemsFromTheInitialFilter);
 		
 		// learn the oracle function
-		learnedOracle = new OracleModelImp();
+		learnedOracle = new OracleModelImpMock();
 		double fpr2 = fprForTheInitialFilter; // Need to change
 		try {
 			learnedOracle.learn(inputDataFile);
@@ -97,11 +97,12 @@ public class SandwichedBloomFilterImp{
 		// count the number of items that would be in backupFilter
         int numberOfItemsInBackupFilter = 0;
 		try {
-			numberOfItemsInBackupFilter = learnedOracle.getNumberOfFalsePos(inputDataFile);
+			numberOfItemsInBackupFilter = learnedOracle.getNumberOfFalseNegative(inputDataFile);
 			System.out.println("numberOfItemsInBackupFilter:" + numberOfItemsInBackupFilter);
 		} catch (Exception e) {
 			e.printStackTrace();
         }
+
 		//try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
 		//	String line;
 		//	int lineNo = 0;
@@ -122,7 +123,6 @@ public class SandwichedBloomFilterImp{
 		//				e.printStackTrace();
 		//			}
 		//		}
-		//		progressPercentage(lineNo, totalLines);
 		//	}
 		//}
 
@@ -134,7 +134,7 @@ public class SandwichedBloomFilterImp{
 		try {
             try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
                 String line;
-                HashSet<String> set = learnedOracle.getClassifications(true);
+                HashSet<String> set = learnedOracle.classifyFile(inputDataFile, false);
                 while((line = reader.readLine())!= null) {
                     // each line has a format: "url,bad/good"
                     // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
@@ -178,6 +178,41 @@ public class SandwichedBloomFilterImp{
 		isContain = backupFilter.contains(s);
 		return isContain;	
 	}
+
+	public ArrayList<Boolean> contains(File inputDataFile) {
+        ArrayList<Boolean> classifications = new ArrayList<Boolean>();
+
+        try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+            HashSet<String> learnedURLs = learnedOracle.classifyFile(inputDataFile, false);
+
+            String line;
+            while((line = reader.readLine())!= null) {
+                // each line has a format: "url,bad/good"
+                // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+                int index = line.lastIndexOf(',');
+                String url = line.substring(0, index);
+                String label = line.substring(index+1, line.length());
+
+                if (!initialFilter.contains(url)) {
+                    classifications.add(false);
+                    continue;
+                }
+
+                if (learnedURLs.contains(url)) {
+                    classifications.add(true);
+                    continue;
+                }
+
+                classifications.add(backupFilter.contains(url));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return classifications;
+	}
 	
 	/**
 	 * 
@@ -213,9 +248,7 @@ public class SandwichedBloomFilterImp{
 	
 
 	public void save(String initialFilterFile, String learnedOracleFile, String backupFilterFile) throws IOException {
-		OutputStream outputStream1 = new FileOutputStream(initialFilterFile);
-		initialFilter.save(outputStream1);
-		outputStream1.close();
+		initialFilter.save(new File(initialFilterFile));
 		
 		try {
 			learnedOracle.save(learnedOracleFile);
@@ -223,19 +256,15 @@ public class SandwichedBloomFilterImp{
 			e.printStackTrace();
 		}
 
-		OutputStream outputStream3 = new FileOutputStream(backupFilterFile);
-		backupFilter.save(outputStream3);
-		outputStream3.close();
+		backupFilter.save(new File(backupFilterFile));
 		
 	}
 
 	public void load(String initialFilterFile, String learnedOracleFile, String backupFilterFile) throws IOException {
 		initialFilter = new StandardBloomFilterImpl();
-		InputStream inputStream1 = new FileInputStream(initialFilterFile);
-		initialFilter.load(inputStream1);
-		inputStream1.close();
+		initialFilter.load(new File(initialFilterFile));
 		
-		learnedOracle = new OracleModelImp();
+		learnedOracle = new OracleModelImpMock();
 		try {
 			learnedOracle.load(learnedOracleFile);
 		} catch (Exception e) {
@@ -243,9 +272,7 @@ public class SandwichedBloomFilterImp{
 		}
 
 		backupFilter = new StandardBloomFilterImpl();
-		InputStream inputStream3 = new FileInputStream(backupFilterFile);
-		backupFilter.load(inputStream3);
-		inputStream3.close();
+		backupFilter.load(new File(backupFilterFile));
 	}
 	
 }

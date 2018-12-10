@@ -44,6 +44,7 @@ import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.apache.zookeeper.KeeperException;
+import weka.core.tokenizers.NGramTokenizer;
 
 public class OracleModelImp implements OracleModel {
 
@@ -59,6 +60,16 @@ public class OracleModelImp implements OracleModel {
      * Constructor.
      */
     public OracleModelImp() {
+        SparkConf configuration = new SparkConf()
+        .setAppName("Learned Oracle")
+        .setMaster("local")
+        .set("spark.default.parallelism", "300")
+        .set("spark.sql.shuffle.partitions", "300");
+
+        SparkContext sc = new SparkContext(configuration);
+        sc.setLogLevel("ERROR");
+
+        spark = new SparkSession(sc);
     }
 
     public void learn(File inputFile) throws Exception {
@@ -66,17 +77,6 @@ public class OracleModelImp implements OracleModel {
         StructType schema = new StructType()
                 .add("url", "string")
                 .add("labelString", "string");
-
-        SparkConf configuration = new SparkConf()
-                .setAppName("Learned Oracle")
-                .setMaster("local")
-                .set("spark.default.parallelism", "300")
-                .set("spark.sql.shuffle.partitions", "300");
-
-        SparkContext sc = new SparkContext(configuration);
-        sc.setLogLevel("ERROR");
-
-        spark = new SparkSession(sc);
 
         Dataset<Row> df = spark.read()
                 .option("mode", "DROPMALFORMED")
@@ -92,62 +92,81 @@ public class OracleModelImp implements OracleModel {
         Dataset<Row> tokenized = regexTokenizer.transform(df);
 
         ngramTransformer = new NGram().setN(3).setInputCol("tokenized_url").setOutputCol("ngrams");
-        tokenized = ngramTransformer.transform(tokenized);
+        Dataset<Row> ngram_df = ngramTransformer.transform(tokenized);
 
         cvModel = new CountVectorizer()
                 .setInputCol("ngrams")
                 .setOutputCol("features")
                 .setVocabSize(2500)
                 .setMinDF(2)
-                .fit(tokenized);
+                .fit(ngram_df);
 
-        tokenized = cvModel.transform(tokenized);
+        Dataset<Row> cv_df = cvModel.transform(ngram_df);
+
+        cv_df.select("labelString").distinct().show();
 
         indexer = new StringIndexer()
                 .setInputCol("labelString")
                 .setOutputCol("label")
-                .fit(tokenized);
+                .fit(cv_df);
 
-
-        Dataset<Row> final_df = indexer.transform(tokenized);
+        Dataset<Row> final_df = indexer.transform(cv_df);
+        final_df.show();
 
         LogisticRegression lr = new LogisticRegression().setMaxIter(500).setStandardization(false).setTol(1e-8).setElasticNetParam(0.8).setRegParam(0.0);
         int[] layers = new int[]{2500, 500, 200, 2};
         // MultilayerPerceptronClassifier lr = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSize(128);
 
-
         // RandomForestClassifier lr = new RandomForestClassifier().set;
-        System.out.println("About to start training...");
-        model = lr.fit(final_df);
+        System.out.println("About to load model...");
+        this.load("./learned");
+//        model = lr.fit(final_df);
 
-        if (model instanceof LogisticRegressionModel) {
-            double[] history = model.summary().objectiveHistory();
-            BinaryLogisticRegressionSummary binarySummary = (BinaryLogisticRegressionSummary) model.summary();
-            double auc = binarySummary.areaUnderROC();
-            System.out.println("AuC: " + String.valueOf(auc));
-
-            System.out.println("PR");
-            binarySummary.pr().show();
-
-            Dataset<Row> fMeasure = binarySummary.fMeasureByThreshold();
-            double maxFMeasure = fMeasure.select(functions.max("F-Measure")).head().getDouble(0);
-            double bestThreshold = fMeasure.where(fMeasure.col("F-Measure").equalTo(maxFMeasure))
-                    .select("threshold").head().getDouble(0);
-            lr.setThreshold(bestThreshold);
-        }
+//        if (model instanceof LogisticRegressionModel) {
+//            double[] history = model.summary().objectiveHistory();
+//            BinaryLogisticRegressionSummary binarySummary = (BinaryLogisticRegressionSummary) model.summary();
+//            double auc = binarySummary.areaUnderROC();
+//            System.out.println("AuC: " + String.valueOf(auc));
+//
+//            System.out.println("PR");
+//            binarySummary.pr().show();
+//
+//            Dataset<Row> fMeasure = binarySummary.fMeasureByThreshold();
+//            double maxFMeasure = fMeasure.select(functions.max("F-Measure")).head().getDouble(0);
+//            double bestThreshold = fMeasure.where(fMeasure.col("F-Measure").equalTo(maxFMeasure))
+//                    .select("threshold").head().getDouble(0);
+//            lr.setThreshold(bestThreshold);
+//        }
 
         this.df = model.transform(final_df);
 
-        String[] cols = new String[]{"prediction"};
+        String[] cols = new String[]{"prediction", "url"};
         Dataset<Row> df_to_write = this.df.select("label", cols);
         String timeAsString = new Timestamp(System.currentTimeMillis()).toString();
-        String filename = String.format("final_df_model_%s_%s", model.getClass().toString(), timeAsString);
+        String filename = String.format("./final_df_model_%s_%s", model.getClass().toString().replace(" ", "_"), timeAsString.replace(" ", "_"));
         df_to_write.write().option("header", "true").csv(filename);
     }
 
-    public HashSet<String> getClassifications(boolean isTrue) throws Exception {
+    public HashSet<String> classifyFile(File f, boolean isTrue) throws Exception {
+         StructType schema = new StructType()
+                .add("url", "string")
+                .add("labelString", "string");
+
+        Dataset<Row> df = spark.read()
+                .option("mode", "DROPMALFORMED")
+                .option("header", "true")
+                .schema(schema)
+                .csv(f.getPath());
+
+        df = regexTokenizer.transform(df);
+        df = ngramTransformer.transform(df);
+        df = cvModel.transform(df);
+        df = model.transform(df);
+
+        // bad predictions are 1, good predictions are 0.
         Dataset<Row> s = df.where("prediction==" + String.valueOf(isTrue));
         Dataset<Row> a = s.select("url");
+        a.write().option("header", "true").csv("good_predictions_" + String.valueOf(Math.random() * 100));
         Iterator<Row> iter = a.toLocalIterator();
         HashSet<String> set = new HashSet<>();
         while (iter.hasNext()) {
@@ -181,12 +200,53 @@ public class OracleModelImp implements OracleModel {
         df = cvModel.transform(df);
         System.out.println("Total time taken to preprocess dataset: " + String.valueOf(System.nanoTime() - startTime));
 
+        
         startTime = System.nanoTime();
         df = model.transform(df);
+        
         Row results = df.select("prediction").first();
         System.out.println("Total time taken to run predictions: " + String.valueOf(System.nanoTime() - startTime));
 
         return ((double) results.get(0) >= 0.5);
+    }
+
+    public int getNumberOfFalseNegative(File inputFile) throws Exception {
+        StructType schema = new StructType()
+                .add("url", "string")
+                .add("labelString", "string");
+
+        Dataset<Row> df = spark.read()
+                .option("mode", "DROPMALFORMED")
+                .option("header", "true")
+                .schema(schema)
+                .csv(inputFile.getPath());
+
+        df = regexTokenizer.transform(df);
+        df = ngramTransformer.transform(df);
+        df = cvModel.transform(df);
+
+        // bad is 1, good is 0
+        df = indexer.transform(df);
+        df = model.transform(df);
+
+        Row firstRow = df.first();
+        int predIdx = firstRow.fieldIndex("prediction");
+        int labelIdx = firstRow.fieldIndex("labelString");
+
+        Iterator<Row> iter = df.toLocalIterator();
+        int fn = 0;
+        while (iter.hasNext()) {
+            Row r = iter.next();
+            int pred = (int) ((double) r.get(predIdx));
+            String label = (String) r.get(labelIdx);
+            if (label.equals("bad")) {
+                if (pred == 0) // label says good
+                {
+                    fn += 1;
+                }
+            }
+        }
+        return fn;
     }
 
     public int getNumberOfFalsePos(File inputFile) throws Exception {
@@ -231,16 +291,25 @@ public class OracleModelImp implements OracleModel {
     }
 
     public void save(String s) throws Exception {
-        model.write().overwrite().save(s);
+        File dir = new File(s + "/");
+        dir.mkdirs();
+        model.write().overwrite().save(s + "/model");
+        regexTokenizer.write().overwrite().save(s + "/regexTokenizer");
+        ngramTransformer.write().overwrite().save(s + "/ngramTransformer");
+        cvModel.write().overwrite().save(s + "/cvModel");
+        indexer.write().overwrite().save(s + "/indexer");
     }
 
     public void load(String s) throws Exception {
-        model = LogisticRegressionModel.load(s);
+        model = LogisticRegressionModel.load(s + "/model");
+        regexTokenizer = RegexTokenizer.load(s + "/regexTokenizer");
+        ngramTransformer = NGram.load(s + "/ngramTransformer");
+        cvModel = CountVectorizerModel.load(s + "/cvModel");
+        indexer = StringIndexerModel.load(s + "/indexer");
     }
 
     @Override
     public int getSize() {
-        // return model.coefficients().size();
-        return 0;
+        return model.coefficients().size();
     }
 }

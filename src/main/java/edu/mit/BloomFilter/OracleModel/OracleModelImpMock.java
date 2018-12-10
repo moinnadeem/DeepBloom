@@ -101,4 +101,11 @@ public class OracleModelImpMock implements OracleModel{
 		System.out.println("numberOfFalseNegativeItems: " + numberOfFalseNegativeItems);
 		return numberOfFalseNegativeItems;
 	}
+
+    public int getNumberOfFalseNegative(File f) throws Exception {
+		throw new Exception("Not implemented");
+	}
+	public HashSet<String> classifyFile(File f, boolean isTrue) throws Exception {
+		throw new Exception("Not implemented");
+	}
 }

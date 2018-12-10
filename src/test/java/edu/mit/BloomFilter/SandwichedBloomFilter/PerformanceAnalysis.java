@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.junit.Assert;
 
@@ -25,8 +26,8 @@ public class PerformanceAnalysis {
 
 		// Learn and setup learned filter
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
-		int approximateN = 344821;
-		double fprForTheInitialFilter = 0.05;
+		int approximateN = 350000;
+		double fprForOracleModel = 0.25;
 		double fprForBackupFilter = 0.01;
 		try {
 			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter,
@@ -35,9 +36,6 @@ public class PerformanceAnalysis {
 			e.printStackTrace();
 			Assert.fail("Exception: " + e.getMessage());
 		}
-
-		System.out.println("About to run contains...");
-		filter.contains("https://moinnadeem.com");
 
 		// Determining FPR and query time
 		String labelPositive = "good";
@@ -49,11 +47,12 @@ public class PerformanceAnalysis {
 		boolean isContain;
 		long startTime;
 		long totalQueryTime = 0;
-		
+
+		ArrayList<Boolean> classifications = filter.contains(inputDataFile);
 		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
 			String line;
 			while((line = reader.readLine())!= null) {
-				lineNo ++;
+				lineNo++;
 				// each line has a format: "url,bad/good"
 				// line = line.substring(1, line.length()); // remove the double quotes at both ends
 				int index = line.lastIndexOf(',');
@@ -64,11 +63,9 @@ public class PerformanceAnalysis {
 					numberOfLinesWithWrongFormat++;
 					continue;
 				}
-				
-				startTime = System.nanoTime();
-				isContain = filter.contains(url);
-				totalQueryTime += (System.nanoTime() - startTime);
-				
+
+				isContain = classifications.get(lineNo);
+
 				if (label.equals(labelPositive)) {
 					if (!isContain) {
 						System.err.println("False Negative: This cannot happen. Something is off: url=" + url);

@@ -113,8 +113,7 @@ public class StandardBloomFilterUtils {
 		    double falsePositiveRate = noNotIn == 0 ? 0d : (double) noFalsePositives / (noFalsePositives + noNotIn);
 		    System.out.println("numNotIn: " + noNotIn + ", numFalsePos: " + noFalsePositives + ", fpr: " + falsePositiveRate);
 		    
-		    FileOutputStream outputStream = new FileOutputStream("outputs/bfWrite.txt");
-		    bf.save(outputStream);
+		    bf.save(new File("outputs/bfWrite.txt"));
 		  }
 		}
 		System.out.println("done");

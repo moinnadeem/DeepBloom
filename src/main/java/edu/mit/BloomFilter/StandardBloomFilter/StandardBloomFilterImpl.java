@@ -2,9 +2,10 @@ package edu.mit.BloomFilter.StandardBloomFilter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.BitSet;
 
 public class StandardBloomFilterImpl implements StandardBloomFilter {
@@ -90,36 +91,33 @@ public class StandardBloomFilterImpl implements StandardBloomFilter {
 	}
 
 	@Override
-	public void save(OutputStream out) {
-		DataOutputStream dout = new DataOutputStream(out);
-		try {
-			dout.writeByte(m);
-			dout.writeByte(k);
-			dout.writeByte(hashMask);
-			dout.writeInt(this.filterArray.length());
+	public void save(File file) throws IOException {
+		try(DataOutputStream dout = new DataOutputStream(new FileOutputStream(file));){
+			dout.writeInt(m);
+			dout.writeInt(k);
+			dout.writeInt(hashMask);
+			dout.writeInt(this.filterArray.size());
 			for (int i = 0; i < this.filterArray.size(); i++) {
 				dout.writeBoolean(this.filterArray.get(i));
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			}	
+		}	
 	}
 
 	@Override
-	public void load(InputStream inputStream) {
-		DataInputStream din = new DataInputStream(inputStream);
-		try {
-			m = din.readByte();
-			k = din.readByte();
+	public void load(File file) throws IOException {
+		
+		try (DataInputStream din = new DataInputStream(new FileInputStream(file));){
+			m = din.readInt();
+			k = din.readInt();
 			hashFunctionFamily = new HashFunctionFamilyImpl1(k);
-			hashMask = din.readByte();
+			hashMask = din.readInt();
 			int lenFilterArray = din.readInt();
+			System.out.println("lenFilterArray:"+ lenFilterArray);
 			this.filterArray = new BitSet(lenFilterArray);
 			for (int i = 0; i < lenFilterArray; i++) {
-				this.filterArray.set(i, din.readBoolean());
+				boolean value = din.readBoolean();
+				this.filterArray.set(i, value);
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 		
 	}

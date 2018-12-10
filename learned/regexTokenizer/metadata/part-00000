@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.RegexTokenizer","timestamp":1544471338525,"sparkVersion":"2.2.2","uid":"regexTok_06c9975f5c96","paramMap":{"outputCol":"tokenized_url","pattern":"","inputCol":"url","toLowercase":true,"gaps":true,"minTokenLength":1}}
