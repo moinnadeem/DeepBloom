@@ -6,7 +6,7 @@ import edu.mit.BloomFilter.Utils.InputFileInfo;
 import java.io.*;
 import java.util.ArrayList;
 
-public class LearnPerformanceTest {
+public class SandwichedPerformanceTest {
     public static void main(String args[]) {
         System.out.println("\n" +
                 " ██████╗     █████╗ ██████╗  ██████╗                                         \n" +
@@ -61,7 +61,9 @@ public class LearnPerformanceTest {
         startTime = System.currentTimeMillis();
         ArrayList<Boolean> classifications = filter.contains(inputDataFile);
         totalQueryTime = System.currentTimeMillis() - startTime;
-        try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+
+        File testDataFile = new File("model_training/train.csv");
+        try(BufferedReader reader = new BufferedReader(new FileReader(testDataFile))){
             String line;
             while((line = reader.readLine())!= null) {
                 lineNo++;

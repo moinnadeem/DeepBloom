@@ -27,8 +27,11 @@ public class SandwichedBloomFilterTest {
 		SandwichedBloomFilterImp filter = new SandwichedBloomFilterImp();
 		File inputDataFile = new File("model_training/data.csv");
 		int approximateN = 350000;
-		double fprForTheInitialFilter = 0.20;
-		double fprForTheBackupFilter = 0.02;
+		double fprForTheInitialFilter = 0.01;
+		double fprForTheBackupFilter = 0.01;
+
+        System.out.println("FPR for initial: " + String.valueOf(fprForTheInitialFilter));
+
 		try {
 			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter, fprForTheBackupFilter);
 			filter.save("./initial.pkl", "./learned", "./total");
@@ -203,7 +206,7 @@ public class SandwichedBloomFilterTest {
 		try {
 			int n1 = 430000;
 
-            double fpr1 = 0.02;
+            double fpr1 = 0.01;
             model = new StandardBloomFilterImpl(n1, fpr1);
 
             String labelPositive = "good";
@@ -237,9 +240,9 @@ public class SandwichedBloomFilterTest {
 
             model.save(new File("standardFilter"));
 
-            long initialTime = System.currentTimeMillis();
+            long initialTime = System.nanoTime();
             model.contains("https://moinnadeem.com");
-            System.out.println(System.currentTimeMillis() - initialTime);
+            System.out.println("Time taken to index in a regular filter: " + String.valueOf(System.nanoTime() - initialTime));
 		} catch (Exception e) {
 			System.out.println("An exception as occurred");
 			e.printStackTrace();

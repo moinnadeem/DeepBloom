@@ -71,7 +71,8 @@ public class LearnedPerformanceTest {
         startTime = System.currentTimeMillis();
         ArrayList<Boolean> classifications = filter.contains(inputDataFile);
         totalQueryTime = System.currentTimeMillis() - startTime;
-        try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+        File testDataFile = new File("model_training/train.csv");
+        try(BufferedReader reader = new BufferedReader(new FileReader(testDataFile))){
             String line;
             while((line = reader.readLine())!= null) {
                 lineNo++;

@@ -24,5 +24,5 @@ public interface OracleModel {
 
 	public int getNumberOfFalseNegative(File f) throws Exception;
 
-	public HashSet<String> classifyFile(File f, boolean isTrue) throws Exception;
+	public HashSet<String> contains(File f, boolean isTrue) throws Exception;
 }

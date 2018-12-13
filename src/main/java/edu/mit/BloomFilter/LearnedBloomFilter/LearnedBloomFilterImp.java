@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
 import edu.mit.BloomFilter.OracleModel.OracleModelImp;
@@ -17,8 +19,8 @@ import edu.mit.BloomFilter.StandardBloomFilter.StandardBloomFilterImpl;
 
 public class LearnedBloomFilterImp {
 	
-	private OracleModel learnedOracle;
-	private StandardBloomFilter backupFilter;
+	public OracleModel learnedOracle;
+	public StandardBloomFilter backupFilter;
 
 	public LearnedBloomFilterImp() {
 		// will need to either call initAndLearn or load
@@ -34,62 +36,51 @@ public class LearnedBloomFilterImp {
 			e.printStackTrace();
 		}
 
-		// count number of false Negative Items
+        // count the number of items that would be in backupFilter
+        int numberOfItemsInBackupFilter = 0;
+		try {
+			numberOfItemsInBackupFilter = learnedOracle.getNumberOfFalseNegative(inputDataFile);
+			System.out.println("numberOfItemsInBackupFilter:" + numberOfItemsInBackupFilter);
+		} catch (Exception e) {
+			e.printStackTrace();
+        }
+
+		System.out.println("numberOfFalseNegativeItems:" + numberOfItemsInBackupFilter);
+
+
+		// initialize backup Filter
 		String labelPositive = "good";
 		String labelNegative = "bad";
-		int numberOfFalseNegativeItems = 0;
+
+		backupFilter = new StandardBloomFilterImpl(numberOfItemsInBackupFilter, fprForBackupFilter);
+		// Go through the falseNegativeItemsFromLearnedOracleFile to add items to the backup filter
 		int lineNo = 0;
 		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
 			String line;
-			while((line = reader.readLine())!= null) {
-				lineNo ++;
-				// each line has a format: "url,bad/good"
-				// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
-				int index = line.lastIndexOf(',');
-				String url = line.substring(0, index);
-				String label = line.substring(index+1, line.length());
+			HashSet<String> set = learnedOracle.contains(inputDataFile, false);
+            while((line = reader.readLine())!= null) {
+                // each line has a format: "url,bad/good"
+                // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+                int index = line.lastIndexOf(',');
+                String url = line.substring(0, index);
+                String label = line.substring(index+1, line.length());
 
-				if (!label.equals(labelPositive) && !label.equals(labelNegative)) {
-					System.out.println("Wrong format for line #"+ lineNo + ". Line = " + line);
-					continue;
-				}
-				if (label.equals(labelPositive)) {
-					try {
-						if (!learnedOracle.classify(url)) {
-							numberOfFalseNegativeItems++;
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}	
-			}		
-		}
-		System.out.println("numberOfFalseNegativeItems:" + numberOfFalseNegativeItems);
-
-		// initialize backup Filter
-		backupFilter = new StandardBloomFilterImpl(numberOfFalseNegativeItems, fprForBackupFilter);
-		// Go through the falseNegativeItemsFromLearnedOracleFile to add items to the backup filter
-		lineNo = 0;
-		try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
-			String line;
-			while((line = reader.readLine())!= null) {
-				lineNo ++;
-				// each line has a format: "url,bad/good"
-				// line = line.substring(1, line.length()-1); // remove the double quotes at both ends
-				int index = line.lastIndexOf(',');
-				String url = line.substring(0, index);
-				String label = line.substring(index+1, line.length());
-
-				if (label.equals(labelPositive)) {
-					try {
-						if (!learnedOracle.classify(url)) {
-							backupFilter.add(url);
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}	
-			}		
+                if (!label.equals(labelPositive) && !label.equals(labelNegative)) {
+//					System.out.println("Wrong format for line #"+ lineNo + ". Line = " + line);
+                    continue;
+                }
+                if (label.equals(labelPositive)) {
+                    try {
+                        if (!set.contains(url)) {
+                            backupFilter.add(url);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -105,6 +96,36 @@ public class LearnedBloomFilterImp {
 		}
 		isContain = backupFilter.contains(s);
 		return isContain;	
+	}
+
+	public ArrayList<Boolean> contains(File inputDataFile) {
+        ArrayList<Boolean> classifications = new ArrayList<Boolean>();
+
+        try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
+            HashSet<String> learnedURLs = learnedOracle.contains(inputDataFile, false);
+
+            String line;
+            while((line = reader.readLine())!= null) {
+                // each line has a format: "url,bad/good"
+                // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
+                int index = line.lastIndexOf(',');
+                String url = line.substring(0, index);
+                String label = line.substring(index+1, line.length());
+
+                if (learnedURLs.contains(url)) {
+                    classifications.add(true);
+                    continue;
+                }
+
+                classifications.add(backupFilter.contains(url));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return classifications;
 	}
 
 	/**

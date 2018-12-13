@@ -134,7 +134,7 @@ public class SandwichedBloomFilterImp{
 		try {
             try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
                 String line;
-                HashSet<String> set = learnedOracle.classifyFile(inputDataFile, false);
+                HashSet<String> set = learnedOracle.contains(inputDataFile, false);
                 while((line = reader.readLine())!= null) {
                     // each line has a format: "url,bad/good"
                     // line = line.substring(1, line.length()-1); // remove the double quotes at both ends
@@ -183,7 +183,7 @@ public class SandwichedBloomFilterImp{
         ArrayList<Boolean> classifications = new ArrayList<Boolean>();
 
         try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
-            HashSet<String> learnedURLs = learnedOracle.classifyFile(inputDataFile, false);
+            HashSet<String> learnedURLs = learnedOracle.contains(inputDataFile, false);
 
             String line;
             while((line = reader.readLine())!= null) {

@@ -15,6 +15,10 @@ import org.apache.spark.ml.classification.LogisticRegression;
 import org.apache.spark.ml.classification.NaiveBayes;
 import org.apache.spark.ml.classification.LinearSVC;
 import org.apache.spark.ml.classification.LinearSVCModel;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
 import org.apache.spark.ml.classification.DecisionTreeClassifier;
@@ -70,6 +74,9 @@ public class OracleModelImp implements OracleModel {
         sc.setLogLevel("ERROR");
 
         spark = new SparkSession(sc);
+        spark.sparkContext().setLogLevel("ERROR");
+        Logger.getLogger("org").setLevel(Level.ERROR);
+        Logger.getLogger("akka").setLevel(Level.ERROR);
     }
 
     public void learn(File inputFile) throws Exception {
@@ -117,10 +124,9 @@ public class OracleModelImp implements OracleModel {
         int[] layers = new int[]{2500, 500, 200, 2};
         // MultilayerPerceptronClassifier lr = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSize(128);
 
-        // RandomForestClassifier lr = new RandomForestClassifier().set;
         System.out.println("About to load model...");
-        this.load("./learned");
-//        model = lr.fit(final_df);
+//        this.load("./learned");
+        model = lr.fit(final_df);
 
 //        if (model instanceof LogisticRegressionModel) {
 //            double[] history = model.summary().objectiveHistory();
@@ -147,7 +153,7 @@ public class OracleModelImp implements OracleModel {
         df_to_write.write().option("header", "true").csv(filename);
     }
 
-    public HashSet<String> classifyFile(File f, boolean isTrue) throws Exception {
+    public HashSet<String> contains(File f, boolean isTrue) throws Exception {
          StructType schema = new StructType()
                 .add("url", "string")
                 .add("labelString", "string");
