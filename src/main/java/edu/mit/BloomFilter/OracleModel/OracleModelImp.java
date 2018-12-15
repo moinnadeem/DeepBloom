@@ -126,7 +126,7 @@ public class OracleModelImp implements OracleModel {
         String[] cols = new String[]{"prediction", "url"};
         Dataset<Row> df_to_write = this.df.select("label", cols);
         String timeAsString = new Timestamp(System.currentTimeMillis()).toString();
-        String filename = String.format("./final_df_model_%s_%s", model.getClass().toString().replace(" ", "_"), timeAsString.replace(" ", "_"));
+        String filename = String.format("./classified_dataframe_%s_%s", model.getClass().toString().replace(" ", "_"), timeAsString.replace(" ", "_"));
         df_to_write.write().option("header", "true").csv(filename);
     }
 
@@ -156,7 +156,7 @@ public class OracleModelImp implements OracleModel {
         // bad predictions are 1, good predictions are 0.
         Dataset<Row> s = df.where("prediction==" + String.valueOf(labelContained));
         Dataset<Row> a = s.select("url");
-        a.write().option("header", "true").csv("good_predictions_" + String.valueOf(Math.random() * 100));
+        a.write().option("header", "true").csv("urls_in_filter_" + String.valueOf(Math.random() * 100));
         Iterator<Row> iter = a.toLocalIterator();
         HashSet<String> set = new HashSet<>();
         while (iter.hasNext()) {
