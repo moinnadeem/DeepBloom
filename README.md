@@ -17,7 +17,7 @@ org.apache.spark:spark-sql_2.10:2.2.2
 ```
 
 ## Classes
-Each class has an abstract class and an implementation class. These are visible in `src/main/java/edu.mit.BloomFilter/`. 
+Each class has an interface and an implementation class. These are visible in `src/main/java/edu.mit.BloomFilter/`. 
 
 ## Feedback
 Questions? Comments? Concerns? Email the creators at [deepbloom@mit.edu](mailto:deepbloom@mit.edu)! 
