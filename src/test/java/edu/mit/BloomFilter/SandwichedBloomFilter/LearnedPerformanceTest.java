@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
 import edu.mit.BloomFilter.OracleModel.OracleModelImp;
@@ -37,7 +38,7 @@ public class LearnedPerformanceTest {
                 "╚═════╝ ╚══════╝╚══════╝╚═╝     ╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝     ╚═╝\n" +
                 "                                                                             \n");
 		try {
-			InputFileInfo.printStatisticForInputFile(new File("model_training/train.csv"));
+			InputFileInfo.printStatisticForInputFile(new File("model_training/ez_data.csv"));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -45,7 +46,7 @@ public class LearnedPerformanceTest {
 		}
 
 		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
-		File inputDataFile = new File("model_training/train.csv");
+		File inputDataFile = new File("model_training/ez_data.csv");
 		int approximateN = 350000;
 		double fprForTheBackupFilter = 0.01;
 
@@ -69,9 +70,12 @@ public class LearnedPerformanceTest {
         long startTime;
         long totalQueryTime = 0;
         startTime = System.currentTimeMillis();
-        ArrayList<Boolean> classifications = filter.contains(inputDataFile);
         totalQueryTime = System.currentTimeMillis() - startTime;
-        File testDataFile = new File("model_training/train.csv");
+        File testDataFile = new File("model_training/ez_data.csv");
+        List[] filterSet = filter.contains(testDataFile);
+        ArrayList<String> urls = (ArrayList<String>) filterSet[0];
+        ArrayList<Boolean> classifications = (ArrayList<Boolean>) filterSet[1];
+//        ArrayList<Boolean> classifications = filter.contains(testDataFile);
         try(BufferedReader reader = new BufferedReader(new FileReader(testDataFile))){
             String line;
             while((line = reader.readLine())!= null) {
@@ -87,6 +91,9 @@ public class LearnedPerformanceTest {
                     continue;
                 }
 
+                if (!url.equals(urls.get(lineNo))) {
+                    System.out.println("Something is wrong, fileURL=" + url + ", contains URL=" + urls.get(lineNo));
+                }
                 isContain = classifications.get(lineNo);
 
                 if (label.equals(labelPositive)) {
@@ -114,13 +121,13 @@ public class LearnedPerformanceTest {
             System.out.println("numberOfLinesWithWrongFormat:" + numberOfLinesWithWrongFormat);
             int numberOfValidItems = (lineNo-numberOfLinesWithWrongFormat);
             System.out.println("Total number of valid items:" + numberOfValidItems);
-            System.out.println("FPR for the filter: " +  (double)numberOfFalsePositiveItems/(double)(numberOfItemsWithNegativeLabel));
+            System.out.println("FPR for the filter: " +  (((double)numberOfFalsePositiveItems)/((double)(numberOfItemsWithNegativeLabel))));
             System.out.println("Size of the oracle model (in bytes): "+ filter.getSizeOfOracleModel());
             System.out.println("Size of the backup filter (in bytes): "+ filter.getSizeOfBackupFilter());
             System.out.println("Size of the filter (in bytes): "+ filter.getSize());
 
-            System.out.println("Total query time (in nanosecond): "+ totalQueryTime);
-            System.out.println("Average time per query (in nanosecond): "+ totalQueryTime/(double)(numberOfValidItems));
+            System.out.println("Total query time (in milliseconds): "+ totalQueryTime);
+            System.out.println("Average time per query (in milliseconds): "+ totalQueryTime/(double)(numberOfValidItems));
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

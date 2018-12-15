@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import edu.mit.BloomFilter.OracleModel.OracleModel;
 import edu.mit.BloomFilter.OracleModel.OracleModelImp;
@@ -23,7 +24,7 @@ public class LearnedBloomFilterImp {
 	public StandardBloomFilter backupFilter;
 
 	public LearnedBloomFilterImp() {
-		// will need to either call initAndLearn or load
+	    // empty constructor.
 	}
 	
 	public void initAndLearn(File inputDataFile, double fprForBackupFilter) throws FileNotFoundException, IOException {
@@ -98,11 +99,11 @@ public class LearnedBloomFilterImp {
 		return isContain;	
 	}
 
-	public ArrayList<Boolean> contains(File inputDataFile) {
+	public List[] contains(File dataFile) {
         ArrayList<Boolean> classifications = new ArrayList<Boolean>();
-
-        try(BufferedReader reader = new BufferedReader(new FileReader(inputDataFile))){
-            HashSet<String> learnedURLs = learnedOracle.contains(inputDataFile, false);
+		ArrayList<String> urls = new ArrayList();
+        try(BufferedReader reader = new BufferedReader(new FileReader(dataFile))){
+            HashSet<String> learnedURLs = learnedOracle.contains(dataFile, false);
 
             String line;
             while((line = reader.readLine())!= null) {
@@ -111,7 +112,7 @@ public class LearnedBloomFilterImp {
                 int index = line.lastIndexOf(',');
                 String url = line.substring(0, index);
                 String label = line.substring(index+1, line.length());
-
+                urls.add(url);
                 if (learnedURLs.contains(url)) {
                     classifications.add(true);
                     continue;
@@ -125,7 +126,8 @@ public class LearnedBloomFilterImp {
             e.printStackTrace();
         }
 
-        return classifications;
+
+        return new List[] {urls, classifications};
 	}
 
 	/**

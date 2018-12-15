@@ -1,1 +1,1 @@
-{"class":"org.apache.spark.ml.feature.RegexTokenizer","timestamp":1544471338525,"sparkVersion":"2.2.2","uid":"regexTok_06c9975f5c96","paramMap":{"outputCol":"tokenized_url","pattern":"","inputCol":"url","toLowercase":true,"gaps":true,"minTokenLength":1}}
+{"class":"org.apache.spark.ml.feature.RegexTokenizer","timestamp":1544831463498,"sparkVersion":"2.2.2","uid":"regexTok_ecb58a5dd1ba","paramMap":{"inputCol":"url","toLowercase":true,"gaps":true,"outputCol":"tokenized_url","pattern":"","minTokenLength":1}}

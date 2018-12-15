@@ -37,8 +37,9 @@ public class SandwichedPerformanceTest {
 		File inputDataFile = new File("model_training/train.csv");
 		int approximateN = 350000;
 		double fprForTheBackupFilter = 0.01;
-	    double fprForTheInitialFilter = 0.10;
+	    double fprForTheInitialFilter = 0.30;
 
+        System.out.println("FPR for initial: " + String.valueOf(fprForTheInitialFilter));
         System.out.println("FPR for backup: " + String.valueOf(fprForTheBackupFilter));
 
 		try {

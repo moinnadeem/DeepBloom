@@ -1,54 +1,25 @@
 package edu.mit.BloomFilter.OracleModel;
 
-import java.io.File;
-import java.sql.Timestamp;
-import java.util.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.ml.classification.BinaryLogisticRegressionSummary;
 import org.apache.spark.ml.classification.LogisticRegression;
-import org.apache.spark.ml.classification.NaiveBayes;
-import org.apache.spark.ml.classification.LinearSVC;
-import org.apache.spark.ml.classification.LinearSVCModel;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-
-import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
-import org.apache.spark.ml.classification.DecisionTreeClassifier;
-import org.apache.spark.ml.classification.DecisionTreeClassificationModel;
-import org.apache.spark.ml.classification.NaiveBayesModel;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
-import org.apache.spark.ml.classification.RandomForestClassificationModel;
-import org.apache.spark.ml.classification.RandomForestClassifier;
-import org.apache.spark.ml.feature.*;
-import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics;
-import org.apache.spark.sql.*;
 import org.apache.spark.ml.classification.LogisticRegressionModel;
-import org.apache.spark.ml.feature.CountVectorizer;
-import org.apache.spark.ml.feature.CountVectorizerModel;
-import org.apache.spark.ml.feature.NGram;
-import org.apache.spark.ml.feature.RegexTokenizer;
-import org.apache.spark.ml.feature.StringIndexer;
-import org.apache.spark.ml.feature.StringIndexerModel;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
+import org.apache.spark.ml.feature.*;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.apache.zookeeper.KeeperException;
-import weka.core.tokenizers.NGramTokenizer;
+
+import java.io.File;
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 public class OracleModelImp implements OracleModel {
 
@@ -62,6 +33,8 @@ public class OracleModelImp implements OracleModel {
 
     /**
      * Constructor.
+     * Used to instantiate Spark and help setup
+     * the model runtime.
      */
     public OracleModelImp() {
         SparkConf configuration = new SparkConf()
@@ -79,6 +52,11 @@ public class OracleModelImp implements OracleModel {
         Logger.getLogger("akka").setLevel(Level.ERROR);
     }
 
+    /**
+     * Responsible for learning a model
+     * @param inputFile: a CSV formatted file of key, label.
+     * @throws Exception
+     */
     public void learn(File inputFile) throws Exception {
         // Assuming the input file is a CSV
         StructType schema = new StructType()
@@ -105,7 +83,7 @@ public class OracleModelImp implements OracleModel {
                 .setInputCol("ngrams")
                 .setOutputCol("features")
                 .setVocabSize(2500)
-                .setMinDF(2)
+                .setMinDF(1)
                 .fit(ngram_df);
 
         Dataset<Row> cv_df = cvModel.transform(ngram_df);
@@ -122,27 +100,26 @@ public class OracleModelImp implements OracleModel {
 
         LogisticRegression lr = new LogisticRegression().setMaxIter(500).setStandardization(false).setTol(1e-8).setElasticNetParam(0.8).setRegParam(0.0);
         int[] layers = new int[]{2500, 500, 200, 2};
-        // MultilayerPerceptronClassifier lr = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSize(128);
 
-        System.out.println("About to load model...");
+        System.out.println("About to learn...");
 //        this.load("./learned");
         model = lr.fit(final_df);
 
-//        if (model instanceof LogisticRegressionModel) {
-//            double[] history = model.summary().objectiveHistory();
-//            BinaryLogisticRegressionSummary binarySummary = (BinaryLogisticRegressionSummary) model.summary();
-//            double auc = binarySummary.areaUnderROC();
-//            System.out.println("AuC: " + String.valueOf(auc));
-//
-//            System.out.println("PR");
-//            binarySummary.pr().show();
-//
-//            Dataset<Row> fMeasure = binarySummary.fMeasureByThreshold();
-//            double maxFMeasure = fMeasure.select(functions.max("F-Measure")).head().getDouble(0);
-//            double bestThreshold = fMeasure.where(fMeasure.col("F-Measure").equalTo(maxFMeasure))
-//                    .select("threshold").head().getDouble(0);
-//            lr.setThreshold(bestThreshold);
-//        }
+        if (model instanceof LogisticRegressionModel) {
+            double[] history = model.summary().objectiveHistory();
+            BinaryLogisticRegressionSummary binarySummary = (BinaryLogisticRegressionSummary) model.summary();
+            double auc = binarySummary.areaUnderROC();
+            System.out.println("AuC: " + String.valueOf(auc));
+
+            System.out.println("PR");
+            binarySummary.pr().show();
+
+            Dataset<Row> fMeasure = binarySummary.fMeasureByThreshold();
+            double maxFMeasure = fMeasure.select(functions.max("F-Measure")).head().getDouble(0);
+            double bestThreshold = fMeasure.where(fMeasure.col("F-Measure").equalTo(maxFMeasure))
+                    .select("threshold").head().getDouble(0);
+            lr.setThreshold(bestThreshold);
+        }
 
         this.df = model.transform(final_df);
 
@@ -153,7 +130,14 @@ public class OracleModelImp implements OracleModel {
         df_to_write.write().option("header", "true").csv(filename);
     }
 
-    public HashSet<String> contains(File f, boolean isTrue) throws Exception {
+    /**
+     * Returns a set of which URLs in a  file are contained in the filter.
+     * @param f: CSV-formatted file to filter.
+     * @param labelContained: what the items within the filter are labeled.
+     * @return A set of which keys (strings) are in the filter.
+     * @throws Exception
+     */
+    public HashSet<String> contains(File f, boolean labelContained) throws Exception {
          StructType schema = new StructType()
                 .add("url", "string")
                 .add("labelString", "string");
@@ -170,7 +154,7 @@ public class OracleModelImp implements OracleModel {
         df = model.transform(df);
 
         // bad predictions are 1, good predictions are 0.
-        Dataset<Row> s = df.where("prediction==" + String.valueOf(isTrue));
+        Dataset<Row> s = df.where("prediction==" + String.valueOf(labelContained));
         Dataset<Row> a = s.select("url");
         a.write().option("header", "true").csv("good_predictions_" + String.valueOf(Math.random() * 100));
         Iterator<Row> iter = a.toLocalIterator();
@@ -182,6 +166,12 @@ public class OracleModelImp implements OracleModel {
         return set;
     }
 
+    /**
+     * Classifies a single URL as in the filter or not in the filter.
+     * @param url: a String-formatted URL to classify.
+     * @return: a boolean indicating whether or not the string is in the filter.
+     * @throws Exception
+     */
     public boolean classify(String url) throws Exception {
         long startTime = System.nanoTime();
 
@@ -216,6 +206,12 @@ public class OracleModelImp implements OracleModel {
         return ((double) results.get(0) >= 0.5);
     }
 
+    /**
+     * Returns the number of false positives across some given file.
+     * @param inputFile: some CSV-formatted file to be classified.
+     * @return an integer describing how many false negatives occurred.
+     * @throws Exception
+     */
     public int getNumberOfFalseNegative(File inputFile) throws Exception {
         StructType schema = new StructType()
                 .add("url", "string")
@@ -255,6 +251,13 @@ public class OracleModelImp implements OracleModel {
         return fn;
     }
 
+    /**
+     * getNumberOfFalsePos: returns the number of false positive
+     * classifications across a filter
+     * @param inputFile: a CSV-formatted file to be classified.
+     * @return an integer corresponding to the number of false positives from that file.
+     * @throws Exception
+     */
     public int getNumberOfFalsePos(File inputFile) throws Exception {
         StructType schema = new StructType()
                 .add("url", "string")
@@ -291,11 +294,19 @@ public class OracleModelImp implements OracleModel {
         return fp;
     }
 
-
+    /**
+     * Returns a string corresponding to the size of the model.
+     * @return an integer corresponding to the number of false positives.
+     */
     public String printSize() {
         return String.valueOf(this.getSize());
     }
 
+    /**
+     * Serializes a model to disk.
+     * @param s: a path to a file where the model can be saved.
+     * @throws Exception
+     */
     public void save(String s) throws Exception {
         File dir = new File(s + "/");
         dir.mkdirs();
@@ -306,6 +317,11 @@ public class OracleModelImp implements OracleModel {
         indexer.write().overwrite().save(s + "/indexer");
     }
 
+    /**
+     * Loads a serialized model from disk.
+     * @param s, a path to the model that needs to be loaded in memory.
+     * @throws Exception
+     */
     public void load(String s) throws Exception {
         model = LogisticRegressionModel.load(s + "/model");
         regexTokenizer = RegexTokenizer.load(s + "/regexTokenizer");
@@ -314,7 +330,10 @@ public class OracleModelImp implements OracleModel {
         indexer = StringIndexerModel.load(s + "/indexer");
     }
 
-    @Override
+    /**
+     * Returns the size of the model in bytes.
+     * @return an integer corresponding to the size of the model.
+     */
     public int getSize() {
         return model.coefficients().size();
     }
