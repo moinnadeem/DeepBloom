@@ -186,20 +186,6 @@ public class SandwichedBloomFilterTest {
 	}
 
 	@Test
-	public void classificationTest() {
-		File inputDataFile = new File("model_training/data.csv");
-		OracleModel model = new OracleModelImp();
-		try {
-			model.learn(inputDataFile);
-			model.save("full_model");
-			model.classify("https://moinnadeem.com");
-		} catch (Exception e) {
-			System.out.println("An exception as occurred");
-			e.printStackTrace();
-		}
-	}
-
-	@Test
 	public void regularTest() {
 	File inputDataFile = new File("model_training/data.csv");
     StandardBloomFilter model = new StandardBloomFilterImpl();

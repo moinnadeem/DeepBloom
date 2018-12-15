@@ -6,7 +6,7 @@ import org.junit.Test;
 
 
 public class OracleModelTest {
-
+	
 	@Test
 	public void classificationTest() {
 		File inputDataFile = new File("model_training/data.csv");
