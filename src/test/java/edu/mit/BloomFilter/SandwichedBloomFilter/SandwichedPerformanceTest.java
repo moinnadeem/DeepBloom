@@ -44,7 +44,8 @@ public class SandwichedPerformanceTest {
 
 		try {
 			filter.initAndLearn(inputDataFile, approximateN, fprForTheInitialFilter, fprForTheBackupFilter);
-			filter.save("./iniial", "./learned", "./backup_filter");
+			filter.save("./filters/initial", "./filters/learned", "./filters/backup_filter");
+
 //            filter.load("./initial.pkl", "./learned", "./total");
 		} catch (IOException e) {
 			e.printStackTrace();

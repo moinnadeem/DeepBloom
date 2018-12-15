@@ -26,7 +26,15 @@ public class SandwichedBloomFilterImp{
 	public SandwichedBloomFilterImp() {
 		// will need to either call initAndLearn or load
 	}
-	
+
+	/**
+	 * Initializes the proper filters, and learns a dataset.
+	 * @param inputDataFile
+	 * @param approximateN
+	 * @param fprForTheInitialFilter
+	 * @param fprForTheBackupFilter
+	 * @throws IOException
+	 */
 	public void initAndLearn(File inputDataFile, int approximateN, double fprForTheInitialFilter, double fprForTheBackupFilter) throws IOException {
 		int n1 = approximateN;
 		double fpr1 = fprForTheInitialFilter; 
@@ -162,6 +170,11 @@ public class SandwichedBloomFilterImp{
 		}
 	}
 
+	/**
+	 * Returns whether the filter contains a given string.
+	 * @param s
+	 * @return
+	 */
 	public boolean contains(String s) {
 		boolean isContain = initialFilter.contains(s);
 		if (!isContain) {
@@ -179,6 +192,11 @@ public class SandwichedBloomFilterImp{
 		return isContain;	
 	}
 
+	/**
+	 * Iterates over a CSV and returns whether some items are contained or not.
+	 * @param inputDataFile
+	 * @return
+	 */
 	public ArrayList<Boolean> contains(File inputDataFile) {
         ArrayList<Boolean> classifications = new ArrayList<Boolean>();
 
@@ -245,8 +263,15 @@ public class SandwichedBloomFilterImp{
 	public int getSize() {
 		return getSizeOfInitialFilter() + getSizeOfOracleModel() + getSizeOfBackupFilter();
 	}
-	
 
+
+	/**
+	 * Saves a Sandwiched Bloom filter to disk.
+	 * @param initialFilterFile
+	 * @param learnedOracleFile
+	 * @param backupFilterFile
+	 * @throws IOException
+	 */
 	public void save(String initialFilterFile, String learnedOracleFile, String backupFilterFile) throws IOException {
 		initialFilter.save(new File(initialFilterFile));
 		
@@ -260,6 +285,13 @@ public class SandwichedBloomFilterImp{
 		
 	}
 
+	/**
+	 * Loads a serialized Sandwiched Bloom filter.
+	 * @param initialFilterFile
+	 * @param learnedOracleFile
+	 * @param backupFilterFile
+	 * @throws IOException
+	 */
 	public void load(String initialFilterFile, String learnedOracleFile, String backupFilterFile) throws IOException {
 		initialFilter = new StandardBloomFilterImpl();
 		initialFilter.load(new File(initialFilterFile));

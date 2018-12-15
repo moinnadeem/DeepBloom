@@ -1,1 +1,1 @@
-{"class":"org.apache.spark.ml.feature.NGram","timestamp":1544748606897,"sparkVersion":"2.2.2","uid":"ngram_59b63974ab03","paramMap":{"outputCol":"ngrams","n":3,"inputCol":"tokenized_url"}}
+{"class":"org.apache.spark.ml.feature.NGram","timestamp":1544843279664,"sparkVersion":"2.2.2","uid":"ngram_d577892deee3","paramMap":{"outputCol":"ngrams","inputCol":"tokenized_url","n":3}}

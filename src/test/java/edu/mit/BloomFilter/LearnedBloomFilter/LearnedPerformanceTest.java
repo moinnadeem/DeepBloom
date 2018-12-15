@@ -1,4 +1,4 @@
-package edu.mit.BloomFilter.SandwichedBloomFilter;
+package edu.mit.BloomFilter.LearnedBloomFilter;
 
 import edu.mit.BloomFilter.LearnedBloomFilter.LearnedBloomFilterImp;
 import edu.mit.BloomFilter.Utils.InputFileInfo;
@@ -46,7 +46,7 @@ public class LearnedPerformanceTest {
 		}
 
 		LearnedBloomFilterImp filter = new LearnedBloomFilterImp();
-		File inputDataFile = new File("model_training/ez_data.csv");
+		File inputDataFile = new File("model_training/data.csv");
 		int approximateN = 350000;
 		double fprForTheBackupFilter = 0.01;
 
@@ -71,7 +71,7 @@ public class LearnedPerformanceTest {
         long totalQueryTime = 0;
         startTime = System.currentTimeMillis();
         totalQueryTime = System.currentTimeMillis() - startTime;
-        File testDataFile = new File("model_training/ez_data.csv");
+        File testDataFile = new File("model_training/data.csv");
         List[] filterSet = filter.contains(testDataFile);
         ArrayList<String> urls = (ArrayList<String>) filterSet[0];
         ArrayList<Boolean> classifications = (ArrayList<Boolean>) filterSet[1];
